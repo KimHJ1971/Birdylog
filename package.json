@@ -1,0 +1,8 @@
+{
+  "name": "birdielog-frontend",
+  "version": "1.0.0",
+  "description": "BirdieLog static web app",
+  "scripts": {
+    "dev": "npx -y http-server -p 8080"
+  }
+}

@@ -1,0 +1,802 @@
+/* ==========================================================================
+   버디로그 (BirdieLog) - 모바일 전용 고대비 스타일 시트
+   ========================================================================== */
+
+:root {
+    --bg-color: #070a13;
+    --card-bg: #0f1524;
+    --card-active: #1a233d;
+    --border-color: #1e293b;
+    --input-bg: #12192c;
+
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+
+    /* 고대비 포인트 컬러 (네온) */
+    --neon-cyan: #00e5ff;
+    --neon-green: #39ff14;
+    --neon-yellow: #fff200;
+    --neon-red: #ff3366;
+    --neon-purple: #bd00ff;
+
+    --shadow-cyan: 0 0 15px rgba(0, 229, 255, 0.4);
+    --shadow-green: 0 0 15px rgba(57, 255, 20, 0.4);
+    --font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+}
+
+/* Reset & Base Settings */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent; /* 모바일 터치 하이라이트 제거 */
+    font-family: var(--font-family);
+}
+
+body {
+    background-color: #03050a;
+    color: var(--text-primary);
+    overflow-x: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Device Wrapper (모바일 해상도 제한, 야외 테스크탑 브라우징 대응) */
+.device-wrapper {
+    width: 100%;
+    max-width: 480px;
+    height: 100vh;
+    min-height: 568px;
+    background-color: var(--bg-color);
+    border-left: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+@media (min-width: 481px) {
+    .device-wrapper {
+        height: 850px;
+        border-radius: 24px;
+        overflow: hidden;
+        border: 4px solid var(--border-color);
+    }
+}
+
+/* Header styling */
+.app-header {
+    height: 60px;
+    padding: 0 20px;
+    background-color: var(--card-bg);
+    border-bottom: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 10;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--neon-cyan);
+    text-shadow: var(--shadow-cyan);
+}
+
+.logo i {
+    font-size: 24px;
+}
+
+.logo h1 {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+}
+
+.version-badge {
+    font-size: 10px;
+    background: rgba(0, 229, 255, 0.15);
+    border: 1px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+    padding: 1px 5px;
+    border-radius: 4px;
+    margin-left: 4px;
+    vertical-align: middle;
+}
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 20px;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.icon-btn:active {
+    background: var(--border-color);
+    color: var(--text-primary);
+}
+
+/* Main Container styling */
+.app-main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.app-section {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+}
+
+.app-section.active {
+    display: flex;
+}
+
+/* Typography Helpers */
+.section-title {
+    margin-bottom: 16px;
+}
+
+.section-title h2 {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.section-title h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--neon-cyan);
+}
+
+.section-title p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+.mt-4 { margin-top: 24px; }
+.mt-3 { margin-top: 16px; }
+
+/* Buttons & Inputs */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+    user-select: none;
+    min-height: 48px;
+}
+
+.btn-primary {
+    background: var(--neon-cyan);
+    color: #03050a;
+}
+
+.btn-primary:active {
+    transform: scale(0.97);
+    box-shadow: none;
+}
+
+.btn-secondary {
+    background: var(--card-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:active {
+    background: var(--border-color);
+}
+
+.btn-success {
+    background: var(--neon-green);
+    color: #03050a;
+}
+
+.btn-success:active {
+    transform: scale(0.97);
+}
+
+.btn-lg {
+    padding: 14px 28px;
+    font-size: 16px;
+}
+
+.btn-sm {
+    min-height: 32px;
+    height: 32px;
+    padding: 0 12px;
+    font-size: 12px;
+    border-radius: 8px;
+}
+
+.btn-block {
+    width: 100%;
+}
+
+/* Glow Effect */
+.glow-btn {
+    box-shadow: var(--shadow-cyan);
+}
+.btn-success.glow-btn {
+    box-shadow: var(--shadow-green);
+}
+
+/* Forms */
+.card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.form-row .form-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+input[type="text"] {
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+input[type="text"]:focus {
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 5px rgba(0, 229, 255, 0.2);
+}
+
+/* Setup - Par Grid Settings */
+.template-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: -30px;
+    float: right;
+}
+
+.par-grid-card {
+    max-height: 350px;
+    overflow-y: auto;
+    margin-top: 12px;
+}
+
+.par-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.par-item {
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 8px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.par-hole-title {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-secondary);
+}
+
+.par-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.par-val {
+    font-size: 16px;
+    font-weight: 800;
+    min-width: 14px;
+}
+
+.par-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: none;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    font-weight: 800;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.par-btn:active {
+    background-color: var(--border-color);
+}
+
+/* SECTION 2: IN-GAME SCREEN UI */
+.game-status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 12px 18px;
+    border-radius: 14px;
+    margin-bottom: 12px;
+}
+
+.hole-indicator {
+    display: flex;
+    flex-direction: column;
+}
+
+.hole-num {
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.hole-num strong {
+    font-size: 24px;
+    color: var(--neon-cyan);
+    margin-right: 2px;
+    text-shadow: var(--shadow-cyan);
+}
+
+.hole-par {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.live-score {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+}
+
+.score-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.score-value {
+    font-size: 22px;
+    font-weight: 900;
+}
+
+/* Hole Quick Navigation */
+.hole-nav {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 4px;
+    margin-bottom: 12px;
+}
+
+.hole-nav-btn {
+    height: 28px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hole-nav-btn.active {
+    border-color: var(--neon-cyan);
+    color: var(--neon-cyan);
+    box-shadow: 0 0 5px rgba(0, 229, 255, 0.3);
+}
+
+.hole-nav-btn.recorded {
+    background: var(--input-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.hole-nav-btn.score-birdie { background-color: rgba(0, 229, 255, 0.15); border-color: var(--neon-cyan); color: var(--neon-cyan); }
+.hole-nav-btn.score-par { background-color: rgba(57, 255, 20, 0.15); border-color: var(--neon-green); color: var(--neon-green); }
+.hole-nav-btn.score-bogey { background-color: rgba(255, 242, 0, 0.15); border-color: var(--neon-yellow); color: var(--neon-yellow); }
+.hole-nav-btn.score-double { background-color: rgba(255, 51, 102, 0.15); border-color: var(--neon-red); color: var(--neon-red); }
+
+/* Current Hole Summary Card */
+.current-summary-card {
+    padding: 10px 14px;
+    margin-bottom: 12px;
+}
+
+.summary-grid {
+    display: flex;
+    justify-content: space-between;
+}
+
+.summary-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+}
+
+.summary-item:not(:last-child) {
+    border-right: 1px solid var(--border-color);
+}
+
+.lbl {
+    font-size: 10px;
+    color: var(--text-secondary);
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+
+.val {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.text-highlight {
+    color: var(--neon-cyan);
+}
+
+/* Input Panels CSS */
+.input-panel-wrapper {
+    flex: 1;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.input-tabs {
+    display: flex;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tab-btn {
+    flex: 1;
+    height: 44px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+    color: var(--neon-cyan);
+    border-bottom: 2px solid var(--neon-cyan);
+    background: var(--card-bg);
+}
+
+.input-panels {
+    flex: 1;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-content {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+}
+
+.panel-content.active {
+    display: flex;
+}
+
+.panel-guide {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.sub-guide {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-secondary);
+    display: block;
+    margin-bottom: 6px;
+}
+
+/* Touch Input Buttons styling */
+.btn-input {
+    background-color: var(--input-bg);
+    border: 2px solid var(--border-color);
+    color: var(--text-primary);
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 48px;
+}
+
+.btn-input:active {
+    transform: scale(0.95);
+    background-color: var(--card-active);
+}
+
+.btn-input.selected {
+    background-color: rgba(0, 229, 255, 0.1);
+    border-color: var(--neon-cyan);
+    color: var(--neon-cyan);
+    box-shadow: 0 0 8px rgba(0, 229, 255, 0.2);
+}
+
+/* Score Input specific grid */
+.score-btn-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    flex: 1;
+}
+
+.score-btn {
+    font-size: 16px;
+    min-height: 54px;
+}
+
+.score-btn[data-val="-1"].selected { border-color: var(--neon-cyan); color: var(--neon-cyan); background-color: rgba(0,229,255,0.08); }
+.score-btn[data-val="0"].selected { border-color: var(--neon-green); color: var(--neon-green); background-color: rgba(57,255,20,0.08); }
+.score-btn[data-val="1"].selected { border-color: var(--neon-yellow); color: var(--neon-yellow); background-color: rgba(255,242,0,0.08); }
+.score-btn[data-val="2"].selected { border-color: var(--neon-red); color: var(--neon-red); background-color: rgba(255,51,102,0.08); }
+
+/* Tee Input specific */
+.dir-btn-group, .issue-btn-group, .gir-btn-group, .putt-btn-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.gir-btn-group {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.miss-btn-grid, .putt-miss-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.btn-input i {
+    margin-right: 4px;
+    font-size: 16px;
+}
+
+/* Navigation controls at bottom */
+.game-nav-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+}
+
+.game-nav-controls .btn {
+    flex: 1;
+}
+
+#btn-finish-game {
+    flex: 1.2;
+}
+
+/* SECTION 3: REPORT SCREEN UI */
+.stats-overview-grid {
+    display: flex;
+    gap: 12px;
+}
+
+.stat-box {
+    flex: 1;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 14px;
+    text-align: center;
+}
+
+.stat-lbl {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    display: block;
+    margin-bottom: 4px;
+}
+
+.stat-num {
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--text-primary);
+}
+
+.stat-num small {
+    font-size: 14px;
+    margin-left: 2px;
+}
+
+.stat-sub {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--neon-cyan);
+    margin-top: 2px;
+    display: block;
+}
+
+/* Terminal Report Viewer */
+.terminal-container {
+    background-color: #03050a;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 10px;
+    flex: 1;
+    min-height: 250px;
+    display: flex;
+    flex-direction: column;
+}
+
+.terminal-header {
+    background-color: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    height: 32px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    position: relative;
+}
+
+.window-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+.t-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.t-close { background-color: var(--neon-red); }
+.t-min { background-color: var(--neon-yellow); }
+.t-max { background-color: var(--neon-green); }
+
+.terminal-title {
+    font-size: 11px;
+    font-family: monospace;
+    color: var(--text-secondary);
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.terminal-textarea {
+    flex: 1;
+    background-color: transparent;
+    border: none;
+    color: var(--neon-green);
+    font-family: monospace;
+    font-size: 12px;
+    padding: 12px;
+    resize: none;
+    outline: none;
+    line-height: 1.6;
+    overflow-y: auto;
+}
+
+/* Action Footer layout styling */
+.action-footer {
+    padding-top: 10px;
+    margin-top: auto;
+}
+
+.action-footer-dual {
+    display: flex;
+    gap: 12px;
+    margin-top: auto;
+}
+
+.action-footer-dual button {
+    flex: 1;
+}
+
+.action-footer-dual #btn-copy-report {
+    flex: 1.5;
+}
+
+/* Toast Notifications styling */
+.toast {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background-color: var(--neon-cyan);
+    color: #03050a;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-weight: 800;
+    font-size: 13px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+    box-shadow: var(--shadow-cyan);
+}
+
+.toast.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
