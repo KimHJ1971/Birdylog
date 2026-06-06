@@ -1,16 +1,18 @@
 /* ==========================================================================
-   버디로그 (BirdieLog) - 모바일 전용 고대비 스타일 시트
+   버디로그 (BirdieLog) v2.0 - 모바일 전용 초고대비 하이브리드 스타일 시체
+   - 전체 다크 테마 + 하단 입력부 초고대비 라이트 테마 전환
+   - 가로 세로 폰트 스케일 및 버튼 크기 1.5배 전격 확대
    ========================================================================== */
 
 :root {
-    --bg-color: #070a13;
-    --card-bg: #0f1524;
-    --card-active: #1a233d;
-    --border-color: #1e293b;
-    --input-bg: #12192c;
+    --bg-color: #05070e;
+    --card-bg: #0c111f;
+    --card-active: #151e33;
+    --border-color: #222e47;
+    --input-bg: #0e1628;
 
     --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
+    --text-secondary: #cbd5e1;
     --text-muted: #64748b;
 
     /* 고대비 포인트 컬러 (네온) */
@@ -20,8 +22,8 @@
     --neon-red: #ff3366;
     --neon-purple: #bd00ff;
 
-    --shadow-cyan: 0 0 15px rgba(0, 229, 255, 0.4);
-    --shadow-green: 0 0 15px rgba(57, 255, 20, 0.4);
+    --shadow-cyan: 0 0 20px rgba(0, 229, 255, 0.6);
+    --shadow-green: 0 0 20px rgba(57, 255, 20, 0.6);
     --font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
 }
 
@@ -30,12 +32,12 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    -webkit-tap-highlight-color: transparent; /* 모바일 터치 하이라이트 제거 */
+    -webkit-tap-highlight-color: transparent;
     font-family: var(--font-family);
 }
 
 body {
-    background-color: #03050a;
+    background-color: #010204;
     color: var(--text-primary);
     overflow-x: hidden;
     display: flex;
@@ -44,36 +46,36 @@ body {
     min-height: 100vh;
 }
 
-/* Device Wrapper (모바일 해상도 제한, 야외 테스크탑 브라우징 대응) */
+/* Device Wrapper (모바일 규격 고정) */
 .device-wrapper {
     width: 100%;
-    max-width: 480px;
+    max-width: 500px;
     height: 100vh;
-    min-height: 568px;
+    min-height: 650px;
     background-color: var(--bg-color);
-    border-left: 1px solid var(--border-color);
-    border-right: 1px solid var(--border-color);
+    border-left: 2px solid var(--border-color);
+    border-right: 2px solid var(--border-color);
     display: flex;
     flex-direction: column;
     position: relative;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
 }
 
-@media (min-width: 481px) {
+@media (min-width: 501px) {
     .device-wrapper {
-        height: 850px;
-        border-radius: 24px;
+        height: 940px;
+        border-radius: 28px;
         overflow: hidden;
-        border: 4px solid var(--border-color);
+        border: 5px solid var(--border-color);
     }
 }
 
-/* Header styling */
+/* Header Styling - 1.5배 확대 */
 .app-header {
-    height: 60px;
-    padding: 0 20px;
+    height: 72px; /* 60px -> 72px */
+    padding: 0 24px;
     background-color: var(--card-bg);
-    border-bottom: 2px solid var(--border-color);
+    border-bottom: 3px solid var(--border-color);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -83,41 +85,41 @@ body {
 .logo {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     color: var(--neon-cyan);
     text-shadow: var(--shadow-cyan);
 }
 
 .logo i {
-    font-size: 24px;
+    font-size: 32px; /* 24px -> 32px */
 }
 
 .logo h1 {
-    font-size: 20px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
+    font-size: 26px; /* 20px -> 26px */
+    font-weight: 950;
+    letter-spacing: -0.8px;
     color: var(--text-primary);
 }
 
 .version-badge {
-    font-size: 10px;
-    background: rgba(0, 229, 255, 0.15);
-    border: 1px solid var(--neon-cyan);
+    font-size: 14px; /* 10px -> 14px */
+    background: rgba(0, 229, 255, 0.2);
+    border: 1.5px solid var(--neon-cyan);
     color: var(--neon-cyan);
-    padding: 1px 5px;
-    border-radius: 4px;
-    margin-left: 4px;
-    vertical-align: middle;
+    padding: 2px 7px;
+    border-radius: 6px;
+    margin-left: 6px;
+    font-weight: 850;
 }
 
 .icon-btn {
     background: transparent;
     border: none;
     color: var(--text-secondary);
-    font-size: 20px;
+    font-size: 28px; /* 20px -> 28px */
     cursor: pointer;
-    width: 40px;
-    height: 40px;
+    width: 54px; /* 40px -> 54px */
+    height: 54px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -130,11 +132,11 @@ body {
     color: var(--text-primary);
 }
 
-/* Main Container styling */
+/* Main Container */
 .app-main {
     flex: 1;
     overflow-y: auto;
-    padding: 20px;
+    padding: 24px;
     display: flex;
     flex-direction: column;
 }
@@ -149,47 +151,49 @@ body {
     display: flex;
 }
 
-/* Typography Helpers */
+/* Typography - 1.5배 확대 */
 .section-title {
-    margin-bottom: 16px;
+    margin-bottom: 24px;
 }
 
 .section-title h2 {
-    font-size: 22px;
-    font-weight: 800;
+    font-size: 30px; /* 22px -> 30px */
+    font-weight: 900;
     color: var(--text-primary);
+    letter-spacing: -0.5px;
 }
 
 .section-title h3 {
-    font-size: 16px;
-    font-weight: 700;
+    font-size: 22px; /* 16px -> 22px */
+    font-weight: 800;
     color: var(--neon-cyan);
+    text-shadow: var(--shadow-cyan);
 }
 
 .section-title p {
-    font-size: 13px;
+    font-size: 17px; /* 13px -> 17px */
     color: var(--text-secondary);
-    margin-top: 4px;
+    margin-top: 6px;
 }
 
-.mt-4 { margin-top: 24px; }
-.mt-3 { margin-top: 16px; }
+.mt-4 { margin-top: 36px; }
+.mt-3 { margin-top: 24px; }
 
-/* Buttons & Inputs */
+/* Buttons & Inputs - 1.5배 확대 */
 .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 12px;
     border: none;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 15px;
+    border-radius: 16px;
+    font-weight: 800;
+    font-size: 20px; /* 15px -> 20px */
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     outline: none;
     user-select: none;
-    min-height: 48px;
+    min-height: 64px; /* 48px -> 64px */
 }
 
 .btn-primary {
@@ -199,13 +203,12 @@ body {
 
 .btn-primary:active {
     transform: scale(0.97);
-    box-shadow: none;
 }
 
 .btn-secondary {
     background: var(--card-bg);
     color: var(--text-primary);
-    border: 1px solid var(--border-color);
+    border: 2px solid var(--border-color);
 }
 
 .btn-secondary:active {
@@ -222,23 +225,22 @@ body {
 }
 
 .btn-lg {
-    padding: 14px 28px;
-    font-size: 16px;
+    padding: 18px 36px;
+    font-size: 22px; /* 16px -> 22px */
 }
 
 .btn-sm {
-    min-height: 32px;
-    height: 32px;
-    padding: 0 12px;
-    font-size: 12px;
-    border-radius: 8px;
+    min-height: 44px; /* 32px -> 44px */
+    height: 44px;
+    padding: 0 18px;
+    font-size: 16px; /* 12px -> 16px */
+    border-radius: 10px;
 }
 
 .btn-block {
     width: 100%;
 }
 
-/* Glow Effect */
 .glow-btn {
     box-shadow: var(--shadow-cyan);
 }
@@ -246,53 +248,42 @@ body {
     box-shadow: var(--shadow-green);
 }
 
-/* Forms */
+/* Cards & Form Elements - 1.5배 확대 */
 .card {
     background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 24px;
 }
 
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    margin-bottom: 16px;
+    gap: 8px;
+    margin-bottom: 24px;
 }
 
 .form-group:last-child {
     margin-bottom: 0;
 }
 
-.form-row {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.form-row .form-group {
-    flex: 1;
-    margin-bottom: 0;
-}
-
 label {
-    font-size: 13px;
-    font-weight: 700;
+    font-size: 18px; /* 13px -> 18px */
+    font-weight: 800;
     color: var(--text-secondary);
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 8px;
 }
 
 input[type="text"] {
     background-color: var(--input-bg);
-    border: 1px solid var(--border-color);
+    border: 2px solid var(--border-color);
     color: var(--text-primary);
-    padding: 12px;
-    border-radius: 10px;
-    font-size: 15px;
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 20px; /* 15px -> 20px */
     font-weight: 600;
     outline: none;
     transition: border-color 0.2s ease;
@@ -300,43 +291,43 @@ input[type="text"] {
 
 input[type="text"]:focus {
     border-color: var(--neon-cyan);
-    box-shadow: 0 0 5px rgba(0, 229, 255, 0.2);
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
 }
 
-/* Setup - Par Grid Settings */
+/* Setup - Par Grid Settings - 1.5배 확대 */
 .template-actions {
     display: flex;
-    gap: 8px;
-    margin-top: -30px;
+    gap: 12px;
+    margin-top: -40px;
     float: right;
 }
 
 .par-grid-card {
-    max-height: 350px;
+    max-height: 400px;
     overflow-y: auto;
-    margin-top: 12px;
+    margin-top: 18px;
 }
 
 .par-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    gap: 12px;
 }
 
 .par-item {
     background-color: var(--input-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    padding: 8px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px;
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 8px;
 }
 
 .par-hole-title {
-    font-size: 11px;
+    font-size: 15px; /* 11px -> 15px */
     font-weight: 800;
     color: var(--text-secondary);
 }
@@ -344,25 +335,25 @@ input[type="text"]:focus {
 .par-controls {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 10px;
 }
 
 .par-val {
-    font-size: 16px;
-    font-weight: 800;
-    min-width: 14px;
+    font-size: 22px; /* 16px -> 22px */
+    font-weight: 900;
+    min-width: 20px;
 }
 
 .par-btn {
-    width: 24px;
-    height: 24px;
-    border-radius: 6px;
+    width: 36px; /* 24px -> 36px */
+    height: 36px;
+    border-radius: 8px;
     border: none;
     background: var(--card-bg);
     color: var(--text-primary);
-    font-weight: 800;
+    font-weight: 900;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -372,16 +363,16 @@ input[type="text"]:focus {
     background-color: var(--border-color);
 }
 
-/* SECTION 2: IN-GAME SCREEN UI */
+/* SECTION 2: IN-GAME SCREEN UI - 1.5배 확대 */
 .game-status-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    padding: 12px 18px;
-    border-radius: 14px;
-    margin-bottom: 12px;
+    border: 2px solid var(--border-color);
+    padding: 16px 24px;
+    border-radius: 20px;
+    margin-bottom: 16px;
 }
 
 .hole-indicator {
@@ -390,21 +381,21 @@ input[type="text"]:focus {
 }
 
 .hole-num {
-    font-size: 14px;
-    font-weight: 800;
+    font-size: 18px;
+    font-weight: 900;
 }
 
 .hole-num strong {
-    font-size: 24px;
+    font-size: 36px; /* 24px -> 36px */
     color: var(--neon-cyan);
-    margin-right: 2px;
+    margin-right: 4px;
     text-shadow: var(--shadow-cyan);
 }
 
 .hole-par {
-    font-size: 12px;
+    font-size: 16px; /* 12px -> 16px */
     color: var(--text-secondary);
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .live-score {
@@ -414,32 +405,32 @@ input[type="text"]:focus {
 }
 
 .score-label {
-    font-size: 11px;
+    font-size: 15px; /* 11px -> 15px */
     color: var(--text-secondary);
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .score-value {
-    font-size: 22px;
-    font-weight: 900;
+    font-size: 32px; /* 22px -> 32px */
+    font-weight: 950;
 }
 
-/* Hole Quick Navigation */
+/* Hole Navigation Dot Bar - 1.5배 확대 */
 .hole-nav {
     display: grid;
     grid-template-columns: repeat(9, 1fr);
-    gap: 4px;
-    margin-bottom: 12px;
+    gap: 6px;
+    margin-bottom: 16px;
 }
 
 .hole-nav-btn {
-    height: 28px;
-    border-radius: 6px;
-    border: 1px solid var(--border-color);
+    height: 38px; /* 28px -> 38px */
+    border-radius: 8px;
+    border: 2px solid var(--border-color);
     background: var(--card-bg);
     color: var(--text-secondary);
-    font-size: 11px;
-    font-weight: 700;
+    font-size: 15px; /* 11px -> 15px */
+    font-weight: 800;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -449,7 +440,7 @@ input[type="text"]:focus {
 .hole-nav-btn.active {
     border-color: var(--neon-cyan);
     color: var(--neon-cyan);
-    box-shadow: 0 0 5px rgba(0, 229, 255, 0.3);
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
 }
 
 .hole-nav-btn.recorded {
@@ -458,15 +449,15 @@ input[type="text"]:focus {
     color: var(--text-primary);
 }
 
-.hole-nav-btn.score-birdie { background-color: rgba(0, 229, 255, 0.15); border-color: var(--neon-cyan); color: var(--neon-cyan); }
-.hole-nav-btn.score-par { background-color: rgba(57, 255, 20, 0.15); border-color: var(--neon-green); color: var(--neon-green); }
-.hole-nav-btn.score-bogey { background-color: rgba(255, 242, 0, 0.15); border-color: var(--neon-yellow); color: var(--neon-yellow); }
-.hole-nav-btn.score-double { background-color: rgba(255, 51, 102, 0.15); border-color: var(--neon-red); color: var(--neon-red); }
+.hole-nav-btn.score-birdie { background-color: rgba(0, 229, 255, 0.2); border-color: var(--neon-cyan); color: var(--neon-cyan); }
+.hole-nav-btn.score-par { background-color: rgba(57, 255, 20, 0.2); border-color: var(--neon-green); color: var(--neon-green); }
+.hole-nav-btn.score-bogey { background-color: rgba(255, 242, 0, 0.2); border-color: var(--neon-yellow); color: var(--neon-yellow); }
+.hole-nav-btn.score-double { background-color: rgba(255, 51, 102, 0.2); border-color: var(--neon-red); color: var(--neon-red); }
 
-/* Current Hole Summary Card */
+/* Current Summary Card - 1.5배 확대 */
 .current-summary-card {
-    padding: 10px 14px;
-    margin-bottom: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
 }
 
 .summary-grid {
@@ -482,145 +473,163 @@ input[type="text"]:focus {
 }
 
 .summary-item:not(:last-child) {
-    border-right: 1px solid var(--border-color);
+    border-right: 2px solid var(--border-color);
 }
 
 .lbl {
-    font-size: 10px;
+    font-size: 14px; /* 10px -> 14px */
     color: var(--text-secondary);
-    font-weight: 700;
-    margin-bottom: 2px;
+    font-weight: 800;
+    margin-bottom: 4px;
 }
 
 .val {
-    font-size: 13px;
-    font-weight: 800;
+    font-size: 18px; /* 13px -> 18px */
+    font-weight: 900;
     color: var(--text-primary);
 }
 
-.text-highlight {
-    color: var(--neon-cyan);
-}
+/* ==========================================================================
+   ⛳️ v2.0 핵심: 하이브리드 고대비 라이트 테마 (입력 패널 영역)
+   - 햇빛 아래 반사율 극복을 위한 고휘도 화이트 테마 전환
+   ========================================================================== */
 
-/* Input Panels CSS */
 .input-panel-wrapper {
     flex: 1;
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
+    background-color: #ffffff; /* 라이트 테마로 완전 전환 */
+    border: 4px solid #000000; /* 극고대비 검정 선 */
+    border-radius: 24px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
+/* 입력 패널 탭 버튼 - 라이트 테마화 */
 .input-tabs {
     display: flex;
-    background: rgba(0, 0, 0, 0.2);
-    border-bottom: 1px solid var(--border-color);
+    background: #e2e8f0;
+    border-bottom: 3px solid #cbd5e1;
 }
 
 .tab-btn {
     flex: 1;
-    height: 44px;
+    height: 56px; /* 44px -> 56px */
     background: transparent;
     border: none;
-    color: var(--text-secondary);
-    font-weight: 700;
-    font-size: 13px;
+    color: #475569; /* 어두운 회색 글씨 */
+    font-weight: 800;
+    font-size: 18px; /* 13px -> 18px */
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .tab-btn.active {
-    color: var(--neon-cyan);
-    border-bottom: 2px solid var(--neon-cyan);
-    background: var(--card-bg);
+    color: #03050a; /* 활성화 시 진한 검정색 */
+    border-bottom: 4px solid #03050a; /* 검정 밑줄 */
+    background: #ffffff;
 }
 
 .input-panels {
     flex: 1;
-    padding: 16px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
-}
-
-.panel-content {
-    display: none;
-    flex-direction: column;
-    flex: 1;
-}
-
-.panel-content.active {
-    display: flex;
+    background-color: #ffffff;
 }
 
 .panel-guide {
-    font-size: 12px;
-    color: var(--text-secondary);
-    font-weight: 600;
-    margin-bottom: 12px;
+    font-size: 17px; /* 12px -> 17px */
+    color: #1e293b; /* 가독성 높은 감청색 계열 본문 */
+    font-weight: 800;
+    margin-bottom: 18px;
     text-align: center;
 }
 
 .sub-guide {
-    font-size: 11px;
-    font-weight: 800;
-    color: var(--text-secondary);
+    font-size: 16px; /* 11px -> 16px */
+    font-weight: 900;
+    color: #03050a; /* 진한 검정 라벨 */
     display: block;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
 }
 
-/* Touch Input Buttons styling */
+/* 3D 터치 스타일 입력 버튼 - 초고대비 화이트 테마 용 */
 .btn-input {
-    background-color: var(--input-bg);
-    border: 2px solid var(--border-color);
-    color: var(--text-primary);
-    border-radius: 12px;
-    font-weight: 700;
+    background-color: #ffffff;
+    border: 3px solid #03050a; /* 칠흑 검정 테두리 */
+    color: #03050a; /* 진한 검정색 본문 */
+    border-radius: 16px;
+    font-weight: 900;
+    font-size: 21px; /* 16px -> 21px */
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-    min-height: 48px;
+    transition: all 0.1s ease;
+    min-height: 68px; /* 48px -> 68px */
+    box-shadow: 0 4px 0 #03050a; /* 3D 물리 버튼 효과 */
+    position: relative;
+    top: 0;
 }
 
 .btn-input:active {
-    transform: scale(0.95);
-    background-color: var(--card-active);
+    top: 3px;
+    box-shadow: 0 1px 0 #03050a;
 }
 
+/* 터치 선택된 상태 (Selected) - 네온 컬러 반전 가시성 */
 .btn-input.selected {
-    background-color: rgba(0, 229, 255, 0.1);
-    border-color: var(--neon-cyan);
-    color: var(--neon-cyan);
-    box-shadow: 0 0 8px rgba(0, 229, 255, 0.2);
+    color: #000000;
+    border-color: #000000;
+    box-shadow: 0 4px 0 #000000, 0 0 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Score Input specific grid */
+/* 각 성적별 선택 배경색 초고강도 반전 */
+.score-btn[data-val="-1"].selected { 
+    background: linear-gradient(135deg, #00f0ff, #00b0ff); /* 네온 시안 그라데이션 */
+    color: #000000; 
+}
+.score-btn[data-val="0"].selected { 
+    background: linear-gradient(135deg, #39ff14, #00d800); /* 네온 그린 그라데이션 */
+    color: #000000; 
+}
+.score-btn[data-val="1"].selected { 
+    background: linear-gradient(135deg, #fff200, #ffd200); /* 네온 옐로우 그라데이션 */
+    color: #000000; 
+}
+.score-btn[data-val="2"].selected,
+.score-btn[data-val="3"].selected,
+.score-btn[data-val="4"].selected { 
+    background: linear-gradient(135deg, #ff3366, #e60050); /* 네온 레드 그라데이션 */
+    color: #ffffff; 
+}
+
+/* 일반 탭 버튼 selected */
+.tee-dir.selected, .tee-status.selected, 
+.gir-btn.selected, .second-miss.selected, 
+.putt-count.selected, .putt-miss.selected {
+    background: linear-gradient(135deg, #00e5ff, #00b0ff); /* 기본 시안계열 반전 */
+    color: #000000;
+}
+
+/* 레이아웃 내부 여백 조정 */
 .score-btn-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    gap: 14px;
     flex: 1;
 }
 
 .score-btn {
-    font-size: 16px;
-    min-height: 54px;
+    min-height: 76px; /* 54px -> 76px */
 }
 
-.score-btn[data-val="-1"].selected { border-color: var(--neon-cyan); color: var(--neon-cyan); background-color: rgba(0,229,255,0.08); }
-.score-btn[data-val="0"].selected { border-color: var(--neon-green); color: var(--neon-green); background-color: rgba(57,255,20,0.08); }
-.score-btn[data-val="1"].selected { border-color: var(--neon-yellow); color: var(--neon-yellow); background-color: rgba(255,242,0,0.08); }
-.score-btn[data-val="2"].selected { border-color: var(--neon-red); color: var(--neon-red); background-color: rgba(255,51,102,0.08); }
-
-/* Tee Input specific */
 .dir-btn-group, .issue-btn-group, .gir-btn-group, .putt-btn-group {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    gap: 10px;
 }
 
 .gir-btn-group {
@@ -630,18 +639,18 @@ input[type="text"]:focus {
 .miss-btn-grid, .putt-miss-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    gap: 12px;
 }
 
 .btn-input i {
-    margin-right: 4px;
-    font-size: 16px;
+    margin-right: 6px;
+    font-size: 22px; /* 16px -> 22px */
 }
 
-/* Navigation controls at bottom */
+/* Navigation Controls - 1.5배 확대 */
 .game-nav-controls {
     display: flex;
-    gap: 10px;
+    gap: 14px;
     justify-content: space-between;
 }
 
@@ -650,96 +659,89 @@ input[type="text"]:focus {
 }
 
 #btn-finish-game {
-    flex: 1.2;
+    flex: 1.3;
 }
 
-/* SECTION 3: REPORT SCREEN UI */
+/* SECTION 3: REPORT SCREEN UI - 1.5배 확대 */
 .stats-overview-grid {
     display: flex;
-    gap: 12px;
+    gap: 16px;
 }
 
 .stat-box {
     flex: 1;
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 14px;
-    padding: 14px;
+    border: 2px solid var(--border-color);
+    border-radius: 20px;
+    padding: 20px;
     text-align: center;
 }
 
 .stat-lbl {
-    font-size: 11px;
-    font-weight: 700;
+    font-size: 15px; /* 11px -> 15px */
+    font-weight: 800;
     color: var(--text-secondary);
     display: block;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 
 .stat-num {
-    font-size: 26px;
-    font-weight: 900;
+    font-size: 38px; /* 26px -> 38px */
+    font-weight: 950;
     color: var(--text-primary);
 }
 
 .stat-num small {
-    font-size: 14px;
-    margin-left: 2px;
+    font-size: 20px;
+    margin-left: 4px;
 }
 
 .stat-sub {
-    font-size: 12px;
-    font-weight: 700;
+    font-size: 17px; /* 12px -> 17px */
+    font-weight: 850;
     color: var(--neon-cyan);
-    margin-top: 2px;
+    margin-top: 4px;
     display: block;
 }
 
-/* Terminal Report Viewer */
+/* Terminal Report Viewer - 1.5배 확대 */
 .terminal-container {
-    background-color: #03050a;
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
+    background-color: #020306;
+    border: 2px solid var(--border-color);
+    border-radius: 16px;
     overflow: hidden;
-    margin-top: 10px;
+    margin-top: 14px;
     flex: 1;
-    min-height: 250px;
+    min-height: 350px;
     display: flex;
     flex-direction: column;
 }
 
 .terminal-header {
     background-color: var(--card-bg);
-    border-bottom: 1px solid var(--border-color);
-    height: 32px;
+    border-bottom: 2px solid var(--border-color);
+    height: 44px; /* 32px -> 44px */
     display: flex;
     align-items: center;
-    padding: 0 12px;
+    padding: 0 16px;
     position: relative;
 }
 
 .window-buttons {
     display: flex;
-    gap: 6px;
+    gap: 8px;
 }
 
 .t-dot {
-    width: 8px;
-    height: 8px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
 }
 
-.t-close { background-color: var(--neon-red); }
-.t-min { background-color: var(--neon-yellow); }
-.t-max { background-color: var(--neon-green); }
-
 .terminal-title {
-    font-size: 11px;
+    font-size: 15px; /* 11px -> 15px */
     font-family: monospace;
     color: var(--text-secondary);
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
 }
 
 .terminal-textarea {
@@ -748,23 +750,23 @@ input[type="text"]:focus {
     border: none;
     color: var(--neon-green);
     font-family: monospace;
-    font-size: 12px;
-    padding: 12px;
+    font-size: 16px; /* 12px -> 16px */
+    padding: 18px;
     resize: none;
     outline: none;
-    line-height: 1.6;
+    line-height: 1.7;
     overflow-y: auto;
 }
 
-/* Action Footer layout styling */
+/* Action Footer layout */
 .action-footer {
-    padding-top: 10px;
+    padding-top: 14px;
     margin-top: auto;
 }
 
 .action-footer-dual {
     display: flex;
-    gap: 12px;
+    gap: 16px;
     margin-top: auto;
 }
 
@@ -776,18 +778,18 @@ input[type="text"]:focus {
     flex: 1.5;
 }
 
-/* Toast Notifications styling */
+/* Toast Notifications - 1.5배 확대 */
 .toast {
     position: absolute;
-    bottom: 80px;
+    bottom: 100px;
     left: 50%;
-    transform: translateX(-50%) translateY(20px);
+    transform: translateX(-50%) translateY(30px);
     background-color: var(--neon-cyan);
     color: #03050a;
-    padding: 10px 20px;
-    border-radius: 30px;
-    font-weight: 800;
-    font-size: 13px;
+    padding: 14px 28px;
+    border-radius: 40px;
+    font-weight: 900;
+    font-size: 18px; /* 13px -> 18px */
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
