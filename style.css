@@ -1,7 +1,8 @@
 /* ==========================================================================
-   버디로그 (BirdieLog) v2.0 - 모바일 전용 초고대비 하이브리드 스타일 시체
-   - 전체 다크 테마 + 하단 입력부 초고대비 라이트 테마 전환
-   - 가로 세로 폰트 스케일 및 버튼 크기 1.5배 전격 확대
+   버디로그 (BirdieLog) v3.0 - 모바일 전용 초고대비 하이브리드 스타일 시트
+   - 1.5배 폰트 크기 대폭 반영 & 18홀 Par 그리드 겹침 해결
+   - 가로 스크롤 차단을 위한 완전 반응형 레이아웃 설계
+   - 하이브리드 라이트 터치 입력창 (PWA Standalone 모드 최적화)
    ========================================================================== */
 
 :root {
@@ -22,12 +23,12 @@
     --neon-red: #ff3366;
     --neon-purple: #bd00ff;
 
-    --shadow-cyan: 0 0 20px rgba(0, 229, 255, 0.6);
-    --shadow-green: 0 0 20px rgba(57, 255, 20, 0.6);
+    --shadow-cyan: 0 0 20px rgba(0, 229, 255, 0.5);
+    --shadow-green: 0 0 20px rgba(57, 255, 20, 0.5);
     --font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
 }
 
-/* Reset & Base Settings */
+/* Reset & Base Settings - 가로 스크롤 원천 차단 */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -36,20 +37,21 @@
     font-family: var(--font-family);
 }
 
-body {
+html, body {
     background-color: #010204;
     color: var(--text-primary);
     overflow-x: hidden;
+    width: 100%;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
 }
 
-/* Device Wrapper (모바일 규격 고정) */
+/* Device Wrapper (모바일 규격 엄격 제한 및 가로 스크롤 방지) */
 .device-wrapper {
     width: 100%;
-    max-width: 500px;
+    max-width: 480px; /* 500px -> 480px 조율해 가로 스크롤 방지 */
     height: 100vh;
     min-height: 650px;
     background-color: var(--bg-color);
@@ -59,56 +61,57 @@ body {
     flex-direction: column;
     position: relative;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+    overflow-x: hidden;
 }
 
-@media (min-width: 501px) {
+@media (min-width: 481px) {
     .device-wrapper {
-        height: 940px;
+        height: 920px;
         border-radius: 28px;
         overflow: hidden;
         border: 5px solid var(--border-color);
     }
 }
 
-/* Header Styling - 1.5배 확대 */
+/* Header Styling (v3.0) */
 .app-header {
-    height: 72px; /* 60px -> 72px */
-    padding: 0 24px;
+    height: 72px;
+    padding: 0 20px;
     background-color: var(--card-bg);
     border-bottom: 3px solid var(--border-color);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    z-index: 10;
+    flex-shrink: 0;
 }
 
 .logo {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     color: var(--neon-cyan);
     text-shadow: var(--shadow-cyan);
 }
 
 .logo i {
-    font-size: 32px; /* 24px -> 32px */
+    font-size: 30px;
 }
 
 .logo h1 {
-    font-size: 26px; /* 20px -> 26px */
+    font-size: 25px;
     font-weight: 950;
     letter-spacing: -0.8px;
     color: var(--text-primary);
 }
 
 .version-badge {
-    font-size: 14px; /* 10px -> 14px */
+    font-size: 13px;
     background: rgba(0, 229, 255, 0.2);
     border: 1.5px solid var(--neon-cyan);
     color: var(--neon-cyan);
-    padding: 2px 7px;
-    border-radius: 6px;
-    margin-left: 6px;
+    padding: 1px 6px;
+    border-radius: 5px;
+    margin-left: 4px;
     font-weight: 850;
 }
 
@@ -116,10 +119,10 @@ body {
     background: transparent;
     border: none;
     color: var(--text-secondary);
-    font-size: 28px; /* 20px -> 28px */
+    font-size: 26px;
     cursor: pointer;
-    width: 54px; /* 40px -> 54px */
-    height: 54px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -132,11 +135,12 @@ body {
     color: var(--text-primary);
 }
 
-/* Main Container */
+/* Main Container - 스크롤 보장 */
 .app-main {
     flex: 1;
     overflow-y: auto;
-    padding: 24px;
+    overflow-x: hidden;
+    padding: 18px;
     display: flex;
     flex-direction: column;
 }
@@ -145,55 +149,56 @@ body {
     display: none;
     flex-direction: column;
     flex: 1;
+    width: 100%;
 }
 
 .app-section.active {
     display: flex;
 }
 
-/* Typography - 1.5배 확대 */
+/* Typography - 1.5배 스케일 */
 .section-title {
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 }
 
 .section-title h2 {
-    font-size: 30px; /* 22px -> 30px */
+    font-size: 28px;
     font-weight: 900;
     color: var(--text-primary);
     letter-spacing: -0.5px;
 }
 
 .section-title h3 {
-    font-size: 22px; /* 16px -> 22px */
-    font-weight: 800;
+    font-size: 21px;
+    font-weight: 850;
     color: var(--neon-cyan);
     text-shadow: var(--shadow-cyan);
 }
 
 .section-title p {
-    font-size: 17px; /* 13px -> 17px */
+    font-size: 16px;
     color: var(--text-secondary);
-    margin-top: 6px;
+    margin-top: 5px;
 }
 
-.mt-4 { margin-top: 36px; }
-.mt-3 { margin-top: 24px; }
+.mt-4 { margin-top: 32px; }
+.mt-3 { margin-top: 20px; }
 
-/* Buttons & Inputs - 1.5배 확대 */
+/* Buttons & Inputs */
 .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 10px;
     border: none;
     border-radius: 16px;
     font-weight: 800;
-    font-size: 20px; /* 15px -> 20px */
+    font-size: 19px;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     outline: none;
     user-select: none;
-    min-height: 64px; /* 48px -> 64px */
+    min-height: 60px;
 }
 
 .btn-primary {
@@ -225,15 +230,15 @@ body {
 }
 
 .btn-lg {
-    padding: 18px 36px;
-    font-size: 22px; /* 16px -> 22px */
+    padding: 16px 32px;
+    font-size: 21px;
 }
 
 .btn-sm {
-    min-height: 44px; /* 32px -> 44px */
-    height: 44px;
-    padding: 0 18px;
-    font-size: 16px; /* 12px -> 16px */
+    min-height: 40px;
+    height: 40px;
+    padding: 0 16px;
+    font-size: 15px;
     border-radius: 10px;
 }
 
@@ -248,20 +253,22 @@ body {
     box-shadow: var(--shadow-green);
 }
 
-/* Cards & Form Elements - 1.5배 확대 */
+/* Cards & Form Elements */
 .card {
     background-color: var(--card-bg);
     border: 2px solid var(--border-color);
     border-radius: 20px;
-    padding: 24px;
-    margin-bottom: 24px;
+    padding: 20px;
+    margin-bottom: 20px;
+    width: 100%;
 }
 
 .form-group {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
+    width: 100%;
 }
 
 .form-group:last-child {
@@ -269,7 +276,7 @@ body {
 }
 
 label {
-    font-size: 18px; /* 13px -> 18px */
+    font-size: 17px;
     font-weight: 800;
     color: var(--text-secondary);
     display: flex;
@@ -281,12 +288,13 @@ input[type="text"] {
     background-color: var(--input-bg);
     border: 2px solid var(--border-color);
     color: var(--text-primary);
-    padding: 16px;
+    padding: 14px;
     border-radius: 12px;
-    font-size: 20px; /* 15px -> 20px */
+    font-size: 18px;
     font-weight: 600;
     outline: none;
     transition: border-color 0.2s ease;
+    width: 100%;
 }
 
 input[type="text"]:focus {
@@ -294,66 +302,77 @@ input[type="text"]:focus {
     box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
 }
 
-/* Setup - Par Grid Settings - 1.5배 확대 */
+/* ==========================================================================
+   🛠 v3.0 버그 수정: 18홀 Par 그리드 겹침 및 가로스크롤 해결
+   ========================================================================== */
 .template-actions {
     display: flex;
-    gap: 12px;
-    margin-top: -40px;
-    float: right;
+    gap: 10px;
+    margin-top: 12px; /* 헤더 겹치지 않게 하향 배치 */
+    float: none;
+    justify-content: flex-end;
 }
 
 .par-grid-card {
-    max-height: 400px;
+    max-height: 380px;
     overflow-y: auto;
-    margin-top: 18px;
+    margin-top: 12px;
+    width: 100%;
+    padding: 16px 12px; /* 가로 패딩 조율 */
 }
 
 .par-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+    grid-template-columns: repeat(3, 1fr); /* 모바일용 3열 강제 유지 */
+    gap: 8px;
+    width: 100%;
 }
 
 .par-item {
     background-color: var(--input-bg);
     border: 2px solid var(--border-color);
     border-radius: 12px;
-    padding: 12px;
+    padding: 10px 4px; /* 내부 가로 패딩 축소해 겹침 방지 */
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    min-width: 0; /* flex/grid 내에서 텍스트 잘림/겹침 방지 */
 }
 
 .par-hole-title {
-    font-size: 15px; /* 11px -> 15px */
-    font-weight: 800;
+    font-size: 14px; /* 1.5배에 맞춘 적정한 크기 */
+    font-weight: 900;
     color: var(--text-secondary);
+    white-space: nowrap; /* 제목 줄바꿈 방지 */
 }
 
 .par-controls {
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
 }
 
 .par-val {
-    font-size: 22px; /* 16px -> 22px */
-    font-weight: 900;
-    min-width: 20px;
+    font-size: 20px;
+    font-weight: 950;
+    min-width: 16px;
+    text-align: center;
 }
 
 .par-btn {
-    width: 36px; /* 24px -> 36px */
-    height: 36px;
-    border-radius: 8px;
+    width: 28px; /* 36px -> 28px 조율해 겹침 방지 */
+    height: 28px;
+    border-radius: 6px;
     border: none;
     background: var(--card-bg);
     color: var(--text-primary);
     font-weight: 900;
     cursor: pointer;
-    font-size: 20px;
+    font-size: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -363,16 +382,17 @@ input[type="text"]:focus {
     background-color: var(--border-color);
 }
 
-/* SECTION 2: IN-GAME SCREEN UI - 1.5배 확대 */
+/* SECTION 2: IN-GAME SCREEN UI - 1.5배 스케일 */
 .game-status-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     background: var(--card-bg);
     border: 2px solid var(--border-color);
-    padding: 16px 24px;
-    border-radius: 20px;
-    margin-bottom: 16px;
+    padding: 14px 20px;
+    border-radius: 18px;
+    margin-bottom: 12px;
+    flex-shrink: 0;
 }
 
 .hole-indicator {
@@ -381,19 +401,19 @@ input[type="text"]:focus {
 }
 
 .hole-num {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 900;
 }
 
 .hole-num strong {
-    font-size: 36px; /* 24px -> 36px */
+    font-size: 34px;
     color: var(--neon-cyan);
     margin-right: 4px;
     text-shadow: var(--shadow-cyan);
 }
 
 .hole-par {
-    font-size: 16px; /* 12px -> 16px */
+    font-size: 15px;
     color: var(--text-secondary);
     font-weight: 700;
 }
@@ -405,31 +425,32 @@ input[type="text"]:focus {
 }
 
 .score-label {
-    font-size: 15px; /* 11px -> 15px */
+    font-size: 14px;
     color: var(--text-secondary);
     font-weight: 700;
 }
 
 .score-value {
-    font-size: 32px; /* 22px -> 32px */
+    font-size: 30px;
     font-weight: 950;
 }
 
-/* Hole Navigation Dot Bar - 1.5배 확대 */
+/* Hole Navigation Dot Bar - 1.5배 스케일 */
 .hole-nav {
     display: grid;
     grid-template-columns: repeat(9, 1fr);
-    gap: 6px;
-    margin-bottom: 16px;
+    gap: 5px;
+    margin-bottom: 12px;
+    flex-shrink: 0;
 }
 
 .hole-nav-btn {
-    height: 38px; /* 28px -> 38px */
+    height: 36px;
     border-radius: 8px;
     border: 2px solid var(--border-color);
     background: var(--card-bg);
     color: var(--text-secondary);
-    font-size: 15px; /* 11px -> 15px */
+    font-size: 14px;
     font-weight: 800;
     cursor: pointer;
     display: flex;
@@ -440,7 +461,7 @@ input[type="text"]:focus {
 .hole-nav-btn.active {
     border-color: var(--neon-cyan);
     color: var(--neon-cyan);
-    box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+    box-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
 }
 
 .hole-nav-btn.recorded {
@@ -454,15 +475,17 @@ input[type="text"]:focus {
 .hole-nav-btn.score-bogey { background-color: rgba(255, 242, 0, 0.2); border-color: var(--neon-yellow); color: var(--neon-yellow); }
 .hole-nav-btn.score-double { background-color: rgba(255, 51, 102, 0.2); border-color: var(--neon-red); color: var(--neon-red); }
 
-/* Current Summary Card - 1.5배 확대 */
+/* Current Summary Card */
 .current-summary-card {
-    padding: 16px;
-    margin-bottom: 16px;
+    padding: 12px;
+    margin-bottom: 12px;
+    flex-shrink: 0;
 }
 
 .summary-grid {
     display: flex;
     justify-content: space-between;
+    width: 100%;
 }
 
 .summary-item {
@@ -470,106 +493,118 @@ input[type="text"]:focus {
     flex-direction: column;
     align-items: center;
     flex: 1;
+    min-width: 0;
 }
 
 .summary-item:not(:last-child) {
-    border-right: 2px solid var(--border-color);
+    border-right: 1.5px solid var(--border-color);
 }
 
 .lbl {
-    font-size: 14px; /* 10px -> 14px */
+    font-size: 12px;
     color: var(--text-secondary);
     font-weight: 800;
     margin-bottom: 4px;
 }
 
 .val {
-    font-size: 18px; /* 13px -> 18px */
+    font-size: 15px;
     font-weight: 900;
     color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    text-align: center;
 }
 
 /* ==========================================================================
-   ⛳️ v2.0 핵심: 하이브리드 고대비 라이트 테마 (입력 패널 영역)
-   - 햇빛 아래 반사율 극복을 위한 고휘도 화이트 테마 전환
+   ⛳️ v3.0 핵심: 하이브리드 고대비 라이트 테마 (입력 패널 영역)
+   - 5개 탭 가로 레이아웃 최적화 & 콤보박스 디자인
    ========================================================================== */
 
 .input-panel-wrapper {
     flex: 1;
-    background-color: #ffffff; /* 라이트 테마로 완전 전환 */
-    border: 4px solid #000000; /* 극고대비 검정 선 */
+    background-color: #ffffff;
+    border: 4px solid #000000;
     border-radius: 24px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    min-height: 280px; /* 최소높이 추가로 레이아웃 고정 */
 }
 
-/* 입력 패널 탭 버튼 - 라이트 테마화 */
+/* 5개 탭 가로 배열 - 글씨 안 겹치게 최적화 */
 .input-tabs {
     display: flex;
     background: #e2e8f0;
     border-bottom: 3px solid #cbd5e1;
+    width: 100%;
 }
 
 .tab-btn {
     flex: 1;
-    height: 56px; /* 44px -> 56px */
+    height: 52px; /* 높이 조절 */
     background: transparent;
     border: none;
-    color: #475569; /* 어두운 회색 글씨 */
-    font-weight: 800;
-    font-size: 18px; /* 13px -> 18px */
+    color: #475569;
+    font-weight: 900;
+    font-size: 14px; /* 5개 글자 겹침 방지 최적 폰트 */
     cursor: pointer;
     transition: all 0.2s ease;
+    white-space: nowrap;
+    text-align: center;
+    padding: 0 2px;
 }
 
 .tab-btn.active {
-    color: #03050a; /* 활성화 시 진한 검정색 */
-    border-bottom: 4px solid #03050a; /* 검정 밑줄 */
+    color: #03050a;
+    border-bottom: 4px solid #03050a;
     background: #ffffff;
 }
 
 .input-panels {
     flex: 1;
-    padding: 20px;
+    padding: 16px;
     display: flex;
     flex-direction: column;
     background-color: #ffffff;
+    overflow-y: auto; /* 패널 내부 내용 초과 시 자체 스크롤 보장 */
 }
 
 .panel-guide {
-    font-size: 17px; /* 12px -> 17px */
-    color: #1e293b; /* 가독성 높은 감청색 계열 본문 */
-    font-weight: 800;
-    margin-bottom: 18px;
+    font-size: 16px;
+    color: #1e293b;
+    font-weight: 900;
+    margin-bottom: 14px;
     text-align: center;
 }
 
 .sub-guide {
-    font-size: 16px; /* 11px -> 16px */
+    font-size: 15px;
     font-weight: 900;
-    color: #03050a; /* 진한 검정 라벨 */
+    color: #03050a;
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
-/* 3D 터치 스타일 입력 버튼 - 초고대비 화이트 테마 용 */
+/* 3D 터치 스타일 입력 버튼 - 라이트 테마 용 */
 .btn-input {
     background-color: #ffffff;
-    border: 3px solid #03050a; /* 칠흑 검정 테두리 */
-    color: #03050a; /* 진한 검정색 본문 */
-    border-radius: 16px;
+    border: 3px solid #03050a;
+    color: #03050a;
+    border-radius: 14px;
     font-weight: 900;
-    font-size: 21px; /* 16px -> 21px */
+    font-size: 18px; /* 5단계/신규 배치에 부합하는 정밀 크기 */
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.1s ease;
-    min-height: 68px; /* 48px -> 68px */
-    box-shadow: 0 4px 0 #03050a; /* 3D 물리 버튼 효과 */
+    min-height: 58px; /* 높이 소폭 조절로 스크롤 최소화 */
+    box-shadow: 0 4px 0 #03050a;
     position: relative;
     top: 0;
 }
@@ -579,57 +614,132 @@ input[type="text"]:focus {
     box-shadow: 0 1px 0 #03050a;
 }
 
-/* 터치 선택된 상태 (Selected) - 네온 컬러 반전 가시성 */
+/* 터치 선택된 상태 (Selected) */
 .btn-input.selected {
     color: #000000;
     border-color: #000000;
     box-shadow: 0 4px 0 #000000, 0 0 12px rgba(0, 0, 0, 0.15);
 }
 
-/* 각 성적별 선택 배경색 초고강도 반전 */
-.score-btn[data-val="-1"].selected { 
-    background: linear-gradient(135deg, #00f0ff, #00b0ff); /* 네온 시안 그라데이션 */
-    color: #000000; 
-}
-.score-btn[data-val="0"].selected { 
-    background: linear-gradient(135deg, #39ff14, #00d800); /* 네온 그린 그라데이션 */
-    color: #000000; 
-}
-.score-btn[data-val="1"].selected { 
-    background: linear-gradient(135deg, #fff200, #ffd200); /* 네온 옐로우 그라데이션 */
-    color: #000000; 
-}
-.score-btn[data-val="2"].selected,
-.score-btn[data-val="3"].selected,
-.score-btn[data-val="4"].selected { 
-    background: linear-gradient(135deg, #ff3366, #e60050); /* 네온 레드 그라데이션 */
-    color: #ffffff; 
-}
-
 /* 일반 탭 버튼 selected */
-.tee-dir.selected, .tee-status.selected, 
-.gir-btn.selected, .second-miss.selected, 
+.tee-dir.selected, .wood-btn.selected, .iron-btn.selected, 
 .putt-count.selected, .putt-miss.selected {
-    background: linear-gradient(135deg, #00e5ff, #00b0ff); /* 기본 시안계열 반전 */
+    background: linear-gradient(135deg, #00e5ff, #00b0ff);
     color: #000000;
 }
 
-/* 레이아웃 내부 여백 조정 */
-.score-btn-grid {
+/* ==========================================================================
+   Combo Box (Select Option) v3.0 전용 디자인
+   ========================================================================== */
+.combo-box-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: auto 0; /* 상하 정중앙 배치 */
+    width: 100%;
+}
+
+.combo-label {
+    font-size: 16px;
+    font-weight: 900;
+    color: #1e293b;
+    gap: 6px;
+}
+
+.select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.select-input {
+    width: 100%;
+    min-height: 62px;
+    background-color: #ffffff;
+    border: 3px solid #03050a;
+    color: #03050a;
+    border-radius: 16px;
+    font-size: 20px;
+    font-weight: 900;
+    padding: 0 16px;
+    padding-right: 48px; /* 화살표 아이콘 영역 확보 */
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #03050a;
+    position: relative;
+    top: 0;
+    transition: all 0.1s ease;
+}
+
+.select-input:active, .select-input:focus {
+    background-color: #f1f5f9;
+}
+
+.select-arrow-icon {
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #03050a;
+    font-size: 22px;
+    pointer-events: none; /* 화살표 클릭 시 select 활성화 방해 금지 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 드라이버 상태 콤보박스용 간격 및 크기 조율 */
+#select-tee-status {
+    min-height: 56px;
+    font-size: 17px;
+}
+
+/* 5단계 티샷 버튼 레이아웃 */
+.dir-btn-group-5 {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* 5열 나열 */
+    gap: 4px;
+    width: 100%;
+}
+
+.dir-btn-group-5 .btn-input {
+    font-size: 12px; /* 5개 수평 나열 시 안 깨지도록 폰트 조절 */
+    min-height: 54px;
+    padding: 0 4px;
+    font-weight: 900;
+    border-width: 2px;
+}
+
+/* 우드/유틸 및 아이언 버튼 그리드 */
+.wood-btn-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
-    flex: 1;
+    gap: 10px;
+    width: 100%;
 }
 
-.score-btn {
-    min-height: 76px; /* 54px -> 76px */
+.iron-btn-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    width: 100%;
 }
 
+.iron-btn-grid button:first-child {
+    grid-column: span 2; /* 온그린 버튼 가로 완전 확장 */
+    background: rgba(57, 255, 20, 0.05);
+}
+.iron-btn-grid button:first-child.selected {
+    background: linear-gradient(135deg, #39ff14, #00d800);
+}
+
+/* 퍼팅 수 및 기타 */
 .dir-btn-group, .issue-btn-group, .gir-btn-group, .putt-btn-group {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    gap: 8px;
 }
 
 .gir-btn-group {
@@ -639,80 +749,83 @@ input[type="text"]:focus {
 .miss-btn-grid, .putt-miss-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 10px;
 }
 
 .btn-input i {
-    margin-right: 6px;
-    font-size: 22px; /* 16px -> 22px */
+    margin-right: 4px;
+    font-size: 18px;
 }
 
-/* Navigation Controls - 1.5배 확대 */
+/* Navigation Controls - 1.5배 스케일 */
 .game-nav-controls {
     display: flex;
-    gap: 14px;
+    gap: 10px;
     justify-content: space-between;
+    flex-shrink: 0;
 }
 
 .game-nav-controls .btn {
     flex: 1;
+    min-height: 54px;
+    font-size: 18px;
 }
 
 #btn-finish-game {
-    flex: 1.3;
+    flex: 1.2;
 }
 
-/* SECTION 3: REPORT SCREEN UI - 1.5배 확대 */
+/* SECTION 3: REPORT SCREEN UI - 1.5배 스케일 */
 .stats-overview-grid {
     display: flex;
-    gap: 16px;
+    gap: 12px;
 }
 
 .stat-box {
     flex: 1;
     background: var(--card-bg);
     border: 2px solid var(--border-color);
-    border-radius: 20px;
-    padding: 20px;
+    border-radius: 18px;
+    padding: 16px;
     text-align: center;
 }
 
 .stat-lbl {
-    font-size: 15px; /* 11px -> 15px */
+    font-size: 14px;
     font-weight: 800;
     color: var(--text-secondary);
     display: block;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 
 .stat-num {
-    font-size: 38px; /* 26px -> 38px */
+    font-size: 34px;
     font-weight: 950;
     color: var(--text-primary);
 }
 
 .stat-num small {
-    font-size: 20px;
+    font-size: 18px;
     margin-left: 4px;
 }
 
 .stat-sub {
-    font-size: 17px; /* 12px -> 17px */
+    font-size: 15px;
     font-weight: 850;
     color: var(--neon-cyan);
     margin-top: 4px;
     display: block;
 }
 
-/* Terminal Report Viewer - 1.5배 확대 */
+/* Terminal Report Viewer - 1.5배 스케일 */
 .terminal-container {
     background-color: #020306;
     border: 2px solid var(--border-color);
     border-radius: 16px;
     overflow: hidden;
-    margin-top: 14px;
+    margin-top: 12px;
     flex: 1;
-    min-height: 350px;
+    min-height: 320px;
     display: flex;
     flex-direction: column;
 }
@@ -720,26 +833,26 @@ input[type="text"]:focus {
 .terminal-header {
     background-color: var(--card-bg);
     border-bottom: 2px solid var(--border-color);
-    height: 44px; /* 32px -> 44px */
+    height: 40px;
     display: flex;
     align-items: center;
-    padding: 0 16px;
+    padding: 0 14px;
     position: relative;
 }
 
 .window-buttons {
     display: flex;
-    gap: 8px;
+    gap: 6px;
 }
 
 .t-dot {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
 }
 
 .terminal-title {
-    font-size: 15px; /* 11px -> 15px */
+    font-size: 13px;
     font-family: monospace;
     color: var(--text-secondary);
 }
@@ -750,23 +863,23 @@ input[type="text"]:focus {
     border: none;
     color: var(--neon-green);
     font-family: monospace;
-    font-size: 16px; /* 12px -> 16px */
-    padding: 18px;
+    font-size: 15px;
+    padding: 16px;
     resize: none;
     outline: none;
-    line-height: 1.7;
+    line-height: 1.6;
     overflow-y: auto;
 }
 
 /* Action Footer layout */
 .action-footer {
-    padding-top: 14px;
+    padding-top: 12px;
     margin-top: auto;
 }
 
 .action-footer-dual {
     display: flex;
-    gap: 16px;
+    gap: 12px;
     margin-top: auto;
 }
 
@@ -775,21 +888,21 @@ input[type="text"]:focus {
 }
 
 .action-footer-dual #btn-copy-report {
-    flex: 1.5;
+    flex: 1.4;
 }
 
-/* Toast Notifications - 1.5배 확대 */
+/* Toast Notifications - 1.5배 스케일 */
 .toast {
     position: absolute;
-    bottom: 100px;
+    bottom: 90px;
     left: 50%;
-    transform: translateX(-50%) translateY(30px);
+    transform: translateX(-50%) translateY(25px);
     background-color: var(--neon-cyan);
     color: #03050a;
-    padding: 14px 28px;
-    border-radius: 40px;
+    padding: 12px 24px;
+    border-radius: 35px;
     font-weight: 900;
-    font-size: 18px; /* 13px -> 18px */
+    font-size: 16px;
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

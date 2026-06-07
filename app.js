@@ -1,9 +1,9 @@
 /* ==========================================================================
-   버디로그 (BirdieLog) - 핵심 비즈니스 로직 및 상태 관리 스크립트
+   버디로그 (BirdieLog) v3.0 - 핵심 비즈니스 로직 및 벤 호건 레슨 엔진 스크립트
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. 애플리케이션 상태 (State)
+    // 1. 애플리케이션 상태 (State v3.0)
     let state = {
         clubName: '',
         courseOut: '',
@@ -12,11 +12,11 @@ document.addEventListener('DOMContentLoaded', () => {
         pars: Array(18).fill(4), // 기본값 Par 4
         currentHole: 1, // 1~18
         holeLogs: Array.from({ length: 18 }, () => ({
-            score: null,       // 상대 스코어: -1(버디), 0(파), 1(보기), 2(더블), 3(트리플), 4(기타)
-            teeDir: null,      // left, center, right
-            teeStatus: null,   // normal, short, hazard
-            gir: null,         // on, off
-            secondMiss: null,  // left_short, right_short, long, short
+            score: null,       // 상대 스코어: -3(알바), -2(이글), -1(버디), 0(파), 1(보기), 2(더블), 3(트리플), 4(쿼드), 5(기타)
+            teeDir: null,      // strong_hook, draw, straight, fade, slice
+            teeStatus: null,   // normal, long, short, ob, hazard
+            wood: null,        // normal, left, right, none
+            iron: null,        // on, left, right, over, short
             putts: null,       // 1, 2, 3 (3은 3이상)
             puttMiss: null     // left, right, short, long
         }))
@@ -46,11 +46,18 @@ document.addEventListener('DOMContentLoaded', () => {
         
         sumScore: document.getElementById('sum-score'),
         sumTee: document.getElementById('sum-tee'),
+        sumWood: document.getElementById('sum-wood'),
         sumSecond: document.getElementById('sum-second'),
         sumPutt: document.getElementById('sum-putt'),
 
+        // 콤보박스 엘리먼트
+        selectScore: document.getElementById('select-score'),
+        selectTeeStatus: document.getElementById('select-tee-status'),
+        guideScore: document.getElementById('guide-score'),
+
         tabTee: document.getElementById('tab-tee'),
-        tabSecond: document.getElementById('tab-second'),
+        tabWood: document.getElementById('tab-wood'),
+        tabIron: document.getElementById('tab-iron'),
         tabBtns: document.querySelectorAll('.tab-btn'),
         panelContents: document.querySelectorAll('.panel-content'),
 
@@ -76,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         toast: document.getElementById('toast')
     };
 
-    // 3. SPA 섹션 전환 함수
+    // 3. SPA 섹션 전환
     function showSection(sectionId) {
         [els.secSetup, els.secGame, els.secReport].forEach(sec => {
             sec.classList.remove('active');
@@ -85,9 +92,9 @@ document.addEventListener('DOMContentLoaded', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // 4. 로컬 스토리지 자동 저장 및 복구
-    const STORAGE_KEY = 'birdielog_state_v1';
-    const TEMPLATE_KEY = 'birdielog_course_template';
+    // 4. 로컬 스토리지 연동
+    const STORAGE_KEY = 'birdielog_state_v3';
+    const TEMPLATE_KEY = 'birdielog_course_template_v3';
 
     function saveStateToStorage() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -98,11 +105,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (saved) {
             try {
                 const parsed = JSON.parse(saved);
-                // 기존 상태에 덮어쓰기
                 state = { ...state, ...parsed };
                 return true;
             } catch (e) {
-                console.error("데이터 로드 실패:", e);
+                console.error("데이터 로드 에러:", e);
             }
         }
         return false;
@@ -112,8 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.removeItem(STORAGE_KEY);
     }
 
-    // 5. [Phase 1 & 3] 설정 화면 기능 구축
-    // Par 설정용 18홀 그리드 렌더링
+    // 5. 설정 화면 (18홀 Par 그리드 겹침 완전 해결 렌더링)
     function renderParGrid() {
         els.parGridContainer.innerHTML = '';
         for (let i = 0; i < 18; i++) {
@@ -130,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
             els.parGridContainer.appendChild(parItem);
         }
 
-        // 증감 버튼 이벤트 리스너
+        // 증감 버튼 리스너
         els.parGridContainer.querySelectorAll('.par-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const holeIdx = parseInt(e.target.dataset.hole, 10);
@@ -150,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 나의 코스 템플릿 저장
+    // 템플릿 저장
     els.btnSaveTemplate.addEventListener('click', () => {
         const templateData = {
             clubName: els.inputClubName.value.trim(),
@@ -160,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         if (!templateData.clubName) {
-            alert("골프장명을 입력한 뒤 템플릿을 저장해주세요.");
+            alert("골프장명을 입력한 뒤 템플릿을 저장해 주세요.");
             return;
         }
 
@@ -183,16 +188,15 @@ document.addEventListener('DOMContentLoaded', () => {
             els.inputCourseIn.value = template.courseIn || '';
             state.pars = template.pars || Array(18).fill(4);
             
-            // UI 그리드 갱신
             renderParGrid();
             saveStateToStorage();
-            showToast("코스 템플릿을 불러왔습니다!");
+            showToast("코스 템플릿을 성공적으로 불러왔습니다!");
         } catch (e) {
-            console.error("템플릿 로드 에러:", e);
+            console.error("템플릿 로드 실패:", e);
         }
     });
 
-    // 라운딩 시작 버튼
+    // 라운딩 시작
     els.btnStartGame.addEventListener('click', () => {
         state.clubName = els.inputClubName.value.trim() || '이름 없는 골프장';
         state.courseOut = els.inputCourseOut.value.trim() || '전반';
@@ -204,13 +208,13 @@ document.addEventListener('DOMContentLoaded', () => {
         showSection('sec-game');
     });
 
-    // 6. [Phase 2 & 3] 인게임(기록) 화면 기능 구축
+    // 6. 인게임 화면 기능 제어
     function initInGameUI() {
         renderHoleNavigation();
         updateHoleRecordScreen();
     }
 
-    // 18홀 빠른 이동 도트 네비게이션 생성
+    // 18홀 빠른 이동 네비게이터 렌더링
     function renderHoleNavigation() {
         els.holeNavGrid.innerHTML = '';
         for (let i = 1; i <= 18; i++) {
@@ -219,11 +223,10 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.textContent = i;
             btn.dataset.hole = i;
             
-            // 홀의 성적이 기록되어 있으면 추가 클래스 할당
             const score = state.holeLogs[i - 1].score;
             if (score !== null) {
                 btn.classList.add('recorded');
-                if (score === -1) btn.classList.add('score-birdie');
+                if (score < 0) btn.classList.add('score-birdie');
                 else if (score === 0) btn.classList.add('score-par');
                 else if (score === 1) btn.classList.add('score-bogey');
                 else if (score >= 2) btn.classList.add('score-double');
@@ -237,17 +240,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 현재 홀 데이터 기반 UI 렌더링 갱신
+    // 현재 홀 데이터 기반 UI 업데이트
     function updateHoleRecordScreen() {
         const holeIdx = state.currentHole - 1;
         const currentPar = state.pars[holeIdx];
         const log = state.holeLogs[holeIdx];
 
-        // 1. 헤더 및 상태표시줄 정보 갱신
+        // 1. 헤더 및 홀 번호 정보 동적 갱신
         els.infoCurrentHole.textContent = state.currentHole;
         els.infoCurrentPar.textContent = `Par ${currentPar}`;
         
-        // 18홀 도트 네비게이터 active 위치 갱신
+        // 동적 가이드 텍스트 갱신 (예: 1번홀의 최종 성적을 선택하세요)
+        els.guideScore.textContent = `${state.currentHole}번 홀의 최종 성적을 선택하세요.`;
+        
+        // 네비게이터 active 정렬
         document.querySelectorAll('.hole-nav-btn').forEach(btn => {
             const h = parseInt(btn.dataset.hole, 10);
             btn.classList.remove('active');
@@ -256,31 +262,35 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // 실시간 누적 스코어 연산
+        // 실시간 누적 스코어
         updateLiveScore();
 
-        // 2. Par 3 홀인 경우 티샷 드라이버 무력화(GIR로 유도)
+        // 2. Par 3 홀일 때 분기 UX (티샷, 우드 비활성화)
         if (currentPar === 3) {
-            els.tabTee.classList.add('disabled');
-            els.tabTee.style.opacity = '0.3';
-            els.tabTee.style.pointerEvents = 'none';
+            [els.tabTee, els.tabWood].forEach(tab => {
+                tab.classList.add('disabled');
+                tab.style.opacity = '0.25';
+                tab.style.pointerEvents = 'none';
+            });
         } else {
-            els.tabTee.classList.remove('disabled');
-            els.tabTee.style.opacity = '1';
-            els.tabTee.style.pointerEvents = 'auto';
+            [els.tabTee, els.tabWood].forEach(tab => {
+                tab.classList.remove('disabled');
+                tab.style.opacity = '1';
+                tab.style.pointerEvents = 'auto';
+            });
         }
 
-        // 3. 기록 요약 카드 갱신
+        // 3. 기록 요약 카드 데이터 갱신
         updateSummaryCard(log, currentPar);
 
-        // 4. 입력 버튼들의 'selected' 활성화 리셋 및 갱신
-        syncInputButtons(log);
+        // 4. 입력 폼 컴포넌트 동기화
+        syncInputComponents(log);
 
-        // 기본적으로 스코어 탭으로 뷰 리셋
+        // 탭 상태 스코어로 복원
         switchInputTab('score');
     }
 
-    // 실시간 누적 스코어 계산 및 반영
+    // 실시간 라이브 스코어 연산
     function updateLiveScore() {
         let totalDiff = 0;
         let playedHoles = 0;
@@ -309,58 +319,86 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 홀 성적 요약 카드 데이터 반영
+    // 요약 카드 텍스트 동기화
     function updateSummaryCard(log, currentPar) {
-        // 성적
+        // 1. 성적
         if (log.score === null) {
             els.sumScore.textContent = '-';
             els.sumScore.className = 'val';
         } else {
-            const labelMap = { '-1': '버디(-1)', '0': '파(E)', '1': '보기(+1)', '2': '더블(+2)', '3': '트리플(+3)', '4': '기타' };
+            const labelMap = { 
+                '-3': '알바(-3)', '-2': '이글(-2)', '-1': '버디(-1)', 
+                '0': '파(E)', '1': '보기(+1)', '2': '더블(+2)', 
+                '3': '트리플(+3)', '4': '쿼드(+4)', '5': '기타(+5)' 
+            };
             els.sumScore.textContent = labelMap[log.score] || '-';
             els.sumScore.className = 'val text-highlight';
             
-            if (log.score === -1) els.sumScore.style.color = 'var(--neon-cyan)';
+            if (log.score < 0) els.sumScore.style.color = 'var(--neon-cyan)';
             else if (log.score === 0) els.sumScore.style.color = 'var(--neon-green)';
             else if (log.score === 1) els.sumScore.style.color = 'var(--neon-yellow)';
             else els.sumScore.style.color = 'var(--neon-red)';
         }
 
-        // 티샷
+        // 2. 티샷
         if (currentPar === 3) {
             els.sumTee.textContent = 'Par3 제외';
             els.sumTee.style.color = 'var(--text-muted)';
         } else {
-            if (log.teeDir === 'center') {
+            if (log.teeDir === 'straight') {
                 els.sumTee.textContent = '안착';
                 els.sumTee.style.color = 'var(--neon-green)';
             } else if (log.teeDir) {
-                const dirLabel = log.teeDir === 'left' ? '훅(좌)' : '슬라이스(우)';
-                const statusLabel = log.teeStatus === 'hazard' ? '(OB)' : '';
+                const dirLabel = log.teeDir === 'strong_hook' ? '강훅' :
+                                 log.teeDir === 'draw' ? '드로우' :
+                                 log.teeDir === 'fade' ? '페이드' : '슬라이스';
+                const statusLabel = (log.teeStatus === 'ob') ? '(OB)' : (log.teeStatus === 'hazard') ? '(해저드)' : '';
                 els.sumTee.textContent = `${dirLabel}${statusLabel}`;
-                els.sumTee.style.color = log.teeStatus === 'hazard' ? 'var(--neon-red)' : 'var(--neon-yellow)';
+                els.sumTee.style.color = (log.teeStatus === 'ob' || log.teeStatus === 'hazard') ? 'var(--neon-red)' : 'var(--neon-yellow)';
             } else {
                 els.sumTee.textContent = '-';
                 els.sumTee.style.color = 'var(--text-primary)';
             }
         }
 
-        // 세컨샷
-        if (log.gir === 'on') {
-            els.sumSecond.textContent = 'GIR 온그린';
+        // 3. 우드/유틸
+        if (currentPar === 3) {
+            els.sumWood.textContent = 'Par3 제외';
+            els.sumWood.style.color = 'var(--text-muted)';
+        } else {
+            if (log.wood === 'normal') {
+                els.sumWood.textContent = '정상';
+                els.sumWood.style.color = 'var(--neon-green)';
+            } else if (log.wood === 'left') {
+                els.sumWood.textContent = '왼쪽미스';
+                els.sumWood.style.color = 'var(--neon-yellow)';
+            } else if (log.wood === 'right') {
+                els.sumWood.textContent = '오른쪽미스';
+                els.sumWood.style.color = 'var(--neon-yellow)';
+            } else if (log.wood === 'none') {
+                els.sumWood.textContent = '없음';
+                els.sumWood.style.color = 'var(--text-muted)';
+            } else {
+                els.sumWood.textContent = '-';
+                els.sumWood.style.color = 'var(--text-primary)';
+            }
+        }
+
+        // 4. 아이언 어프로치 (GIR)
+        if (log.iron === 'on') {
+            els.sumSecond.textContent = 'GIR 성공';
             els.sumSecond.style.color = 'var(--neon-green)';
-        } else if (log.gir === 'off') {
-            const missMap = { 'left_short': '좌측짧음', 'right_short': '우측짧음', 'long': '길었음', 'short': '짧았음' };
-            els.sumSecond.textContent = missMap[log.secondMiss] || '오프그린';
+        } else if (log.iron) {
+            const ironLabelMap = { 'left': '왼쪽미스', 'right': '오른쪽미스', 'over': '그린오버', 'short': '짧음' };
+            els.sumSecond.textContent = ironLabelMap[log.iron] || '-';
             els.sumSecond.style.color = 'var(--neon-yellow)';
         } else {
             els.sumSecond.textContent = '-';
             els.sumSecond.style.color = 'var(--text-primary)';
         }
 
-        // 퍼팅
-        if (log.putts) {
-            const missLabel = log.puttMiss ? `(${log.puttMiss === 'left' ? '왼쪽' : log.puttMiss === 'right' ? '오른쪽' : log.puttMiss === 'short' ? '짧음' : '길음'})` : '';
+        // 5. 퍼팅
+        if (log.putts !== null) {
             els.sumPutt.textContent = `${log.putts}펏${log.putts >= 3 ? ' ⚠️' : ''}`;
             els.sumPutt.style.color = log.putts >= 3 ? 'var(--neon-red)' : 'var(--text-primary)';
         } else {
@@ -369,36 +407,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 각 패널 터치 버튼 선택값 바인딩 동기화
-    function syncInputButtons(log) {
-        // 스코어
-        document.querySelectorAll('.score-btn').forEach(btn => {
-            const val = parseInt(btn.dataset.val, 10);
-            btn.classList.remove('selected');
-            if (log.score === val) btn.classList.add('selected');
-        });
+    // 입력 컴포넌트 상태 연동
+    function syncInputComponents(log) {
+        // 1. 스코어 콤보박스
+        els.selectScore.value = log.score !== null ? String(log.score) : "";
 
-        // 티샷
+        // 2. 티샷 방향 5단계 버튼
         document.querySelectorAll('.tee-dir').forEach(btn => {
             btn.classList.remove('selected');
             if (log.teeDir === btn.dataset.dir) btn.classList.add('selected');
         });
-        document.querySelectorAll('.tee-status').forEach(btn => {
+
+        // 3. 드라이버 상태 콤보박스
+        els.selectTeeStatus.value = log.teeStatus !== null ? log.teeStatus : "";
+
+        // 4. 우드/유틸샷 버튼
+        document.querySelectorAll('.wood-btn').forEach(btn => {
             btn.classList.remove('selected');
-            if (log.teeStatus === btn.dataset.status) btn.classList.add('selected');
+            if (log.wood === btn.dataset.wood) btn.classList.add('selected');
         });
 
-        // 세컨샷
-        document.querySelectorAll('.gir-btn').forEach(btn => {
+        // 5. 아이언샷 버튼
+        document.querySelectorAll('.iron-btn').forEach(btn => {
             btn.classList.remove('selected');
-            if (log.gir === btn.dataset.gir) btn.classList.add('selected');
-        });
-        document.querySelectorAll('.second-miss').forEach(btn => {
-            btn.classList.remove('selected');
-            if (log.secondMiss === btn.dataset.miss) btn.classList.add('selected');
+            if (log.iron === btn.dataset.iron) btn.classList.add('selected');
         });
 
-        // 퍼팅
+        // 6. 퍼팅 버튼
         document.querySelectorAll('.putt-count').forEach(btn => {
             btn.classList.remove('selected');
             if (log.putts === parseInt(btn.dataset.putts, 10)) btn.classList.add('selected');
@@ -408,15 +443,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (log.puttMiss === btn.dataset.miss) btn.classList.add('selected');
         });
 
-        // 온그린 시 세컨샷 미스 방향 숨기기
-        const secondMissSection = document.getElementById('second-miss-section');
-        if (log.gir === 'on') {
-            secondMissSection.style.display = 'none';
-        } else {
-            secondMissSection.style.display = 'block';
-        }
-
-        // 1펏 성공 시 퍼팅 미스 패턴 숨기기
+        // 1펏 컵인인 경우 퍼팅 미스 패턴 감추기
         const puttMissSection = document.getElementById('putt-miss-section');
         if (log.putts === 1) {
             puttMissSection.style.display = 'none';
@@ -425,7 +452,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 7. 입력 패널 스위칭 및 터치 조작 핸들링
+    // 7. 입력 탭 전환 통제
     function switchInputTab(step) {
         els.tabBtns.forEach(btn => {
             btn.classList.remove('active');
@@ -444,98 +471,97 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 8. 터치 버튼 동작 할당 및 오토포커스 UX
-    // 스코어 터치
-    document.querySelectorAll('.score-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const val = parseInt(e.currentTarget.dataset.val, 10);
-            const holeIdx = state.currentHole - 1;
-            state.holeLogs[holeIdx].score = val;
+    // 8. 터치 및 콤보박스 리스너 할당 & 스마트 오토포커스
+    // 스코어 콤보박스 선택
+    els.selectScore.addEventListener('change', (e) => {
+        const val = parseInt(e.target.value, 10);
+        const holeIdx = state.currentHole - 1;
+        state.holeLogs[holeIdx].score = val;
 
-            // 스코어 세팅 후 오버레이 갱신
-            saveStateToStorage();
-            renderHoleNavigation();
-            updateHoleRecordScreen();
+        saveStateToStorage();
+        renderHoleNavigation();
+        updateHoleRecordScreen();
 
-            // Par 3 홀인 경우 다음 탭을 세컨샷으로 자동 점프
-            if (state.pars[holeIdx] === 3) {
-                switchInputTab('second');
-            } else {
-                switchInputTab('tee');
-            }
-        });
+        // Par 3면 티샷/우드를 스킵하고 아이언 탭으로 직진
+        if (state.pars[holeIdx] === 3) {
+            setTimeout(() => switchInputTab('iron'), 250);
+        } else {
+            setTimeout(() => switchInputTab('tee'), 250);
+        }
     });
 
-    // 티샷 방향 터치
+    // 티샷 방향 선택 (5단계)
     document.querySelectorAll('.tee-dir').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const dir = e.currentTarget.dataset.dir;
-            state.holeLogs[state.currentHole - 1].teeDir = dir;
+            const holeIdx = state.currentHole - 1;
+            state.holeLogs[holeIdx].teeDir = dir;
             saveStateToStorage();
             updateHoleRecordScreen();
-            
-            // 페어웨이 한가운데 안착하면 상태를 자동으로 '정상'으로 세팅하고 세컨샷 탭으로 이동
-            if (dir === 'center') {
-                state.holeLogs[state.currentHole - 1].teeStatus = 'normal';
+
+            // 스트레이트일 때 드라이버 상태를 자동으로 '정상' 설정 후 우드 탭으로 오토포커스
+            if (dir === 'straight') {
+                state.holeLogs[holeIdx].teeStatus = 'normal';
                 saveStateToStorage();
                 updateHoleRecordScreen();
-                setTimeout(() => switchInputTab('second'), 150);
+                setTimeout(() => switchInputTab('wood'), 250);
             }
         });
     });
 
-    // 티샷 상태 터치
-    document.querySelectorAll('.tee-status').forEach(btn => {
+    // 드라이버 상태 콤보박스 선택
+    els.selectTeeStatus.addEventListener('change', (e) => {
+        const status = e.target.value;
+        state.holeLogs[state.currentHole - 1].teeStatus = status;
+        
+        saveStateToStorage();
+        updateHoleRecordScreen();
+        setTimeout(() => switchInputTab('wood'), 250);
+    });
+
+    // 우드/유틸샷 선택
+    document.querySelectorAll('.wood-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            const status = e.currentTarget.dataset.status;
-            state.holeLogs[state.currentHole - 1].teeStatus = status;
+            const wood = e.currentTarget.dataset.wood;
+            state.holeLogs[state.currentHole - 1].wood = wood;
+            
             saveStateToStorage();
             updateHoleRecordScreen();
-            setTimeout(() => switchInputTab('second'), 150);
+            setTimeout(() => switchInputTab('iron'), 250);
         });
     });
 
-    // 세컨샷 온그린 여부 터치
-    document.querySelectorAll('.gir-btn').forEach(btn => {
+    // 아이언샷 선택 (어프로치)
+    document.querySelectorAll('.iron-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            const gir = e.currentTarget.dataset.gir;
-            state.holeLogs[state.currentHole - 1].gir = gir;
+            const iron = e.currentTarget.dataset.iron;
+            state.holeLogs[state.currentHole - 1].iron = iron;
             
-            if (gir === 'on') {
-                state.holeLogs[state.currentHole - 1].secondMiss = null; // 미스방향 초기화
+            if (iron === 'on') {
+                // 온그린 시 퍼팅 탭으로 바로 이동
                 saveStateToStorage();
                 updateHoleRecordScreen();
-                setTimeout(() => switchInputTab('putt'), 150);
+                setTimeout(() => switchInputTab('putt'), 250);
             } else {
                 saveStateToStorage();
                 updateHoleRecordScreen();
+                setTimeout(() => switchInputTab('putt'), 250); // 오프그린이어도 퍼팅으로 안내
             }
         });
     });
 
-    // 세컨샷 미스 방향 터치
-    document.querySelectorAll('.second-miss').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const miss = e.currentTarget.dataset.miss;
-            state.holeLogs[state.currentHole - 1].secondMiss = miss;
-            saveStateToStorage();
-            updateHoleRecordScreen();
-            setTimeout(() => switchInputTab('putt'), 150);
-        });
-    });
-
-    // 퍼팅 수 터치
+    // 퍼팅 수 선택
     document.querySelectorAll('.putt-count').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const putts = parseInt(e.currentTarget.dataset.putts, 10);
             state.holeLogs[state.currentHole - 1].putts = putts;
             
             if (putts === 1) {
-                state.holeLogs[state.currentHole - 1].puttMiss = null; // 미스방향 초기화
+                state.holeLogs[state.currentHole - 1].puttMiss = null; // 미스방향 자동 초기화
                 saveStateToStorage();
                 updateHoleRecordScreen();
-                // 1펏 종료면 자동으로 다음 홀로 점프
-                setTimeout(goToNextHole, 250);
+                // 1펏 컵인이면 다음 홀 자동 점프
+                setTimeout(goToNextHole, 300);
             } else {
                 saveStateToStorage();
                 updateHoleRecordScreen();
@@ -543,19 +569,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 퍼팅 미스 패턴 터치
+    // 퍼팅 미스 패턴 선택
     document.querySelectorAll('.putt-miss').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const miss = e.currentTarget.dataset.miss;
             state.holeLogs[state.currentHole - 1].puttMiss = miss;
+            
             saveStateToStorage();
             updateHoleRecordScreen();
-            // 입력 완료 후 다음 홀로 점프
-            setTimeout(goToNextHole, 250);
+            // 입력 마감 후 다음 홀 점프
+            setTimeout(goToNextHole, 300);
         });
     });
 
-    // 홀 간 이동 기능
+    // 홀 이동
     function goToPrevHole() {
         if (state.currentHole > 1) {
             state.currentHole--;
@@ -573,13 +600,13 @@ document.addEventListener('DOMContentLoaded', () => {
     els.btnPrevHole.addEventListener('click', goToPrevHole);
     els.btnNextHole.addEventListener('click', goToNextHole);
 
-    // 데이터 복구 리셋 버튼
+    // 기록 초기화
     els.btnResetData.addEventListener('click', () => {
-        if (confirm("정말 모든 라운딩 기록을 초기화하고 처음부터 시작하시겠습니까?")) {
+        if (confirm("정말 모든 기록을 삭제하고 v3.0 세팅 화면으로 가시겠습니까?")) {
             clearStorage();
             state.currentHole = 1;
             state.holeLogs = Array.from({ length: 18 }, () => ({
-                score: null, teeDir: null, teeStatus: null, gir: null, secondMiss: null, putts: null, puttMiss: null
+                score: null, teeDir: null, teeStatus: null, wood: null, iron: null, putts: null, puttMiss: null
             }));
             
             els.inputClubName.value = '';
@@ -589,45 +616,104 @@ document.addEventListener('DOMContentLoaded', () => {
             
             renderParGrid();
             showSection('sec-setup');
-            showToast("기록이 초기화되었습니다.");
+            showToast("모든 기록이 초기화되었습니다.");
         }
     });
 
-    // 9. [Phase 4] 리포트 생성 및 통계 엔진
+    // 9. 리포트 생성 및 벤 호건 원포인트 스킬 레슨 알고리즘 연동
     els.btnFinishGame.addEventListener('click', () => {
-        if (confirm("라운딩을 종료하고 샷 분석 리포트를 확인하시겠습니까?")) {
+        if (confirm("경기를 마감하고 벤 호건의 원포인트 스윙 조언이 포함된 최종 리포트를 빌드하시겠습니까?")) {
             generateReport();
             showSection('sec-report');
         }
     });
 
-    // 통계 연산 및 텍스트 리포트 스트링 생성
+    // 벤 호건 레슨 조언 생성기
+    function getBenHoganAdvice(stats) {
+        // 통계 팩터 분석
+        const sliceCount = stats.teeSlice + stats.teeFade + stats.woodRight + stats.ironRight;
+        const hookCount = stats.teeHook + stats.teeDraw + stats.woodLeft + stats.ironLeft;
+        const shortCount = stats.teeShort + stats.ironShort;
+        const totalAttempts = stats.playedHoles;
+
+        if (totalAttempts === 0) {
+            return "기록된 홀 정보가 부족하여 스윙 조언을 분석할 수 없습니다.";
+        }
+
+        const sliceRatio = sliceCount / (totalAttempts * 2.5); // 평균 샷 빈도 대비 가중치
+        const hookRatio = hookCount / (totalAttempts * 2.5);
+        const shortRatio = shortCount / (totalAttempts * 1.5);
+
+        // 1. 슬라이스/우측 미스 경향이 우세할 때
+        if (sliceRatio > 0.35 && sliceRatio >= hookRatio) {
+            return "💡 [벤 호건의 원포인트 레슨 - 슬라이스 처방]\n" +
+                   "슬라이스는 흔히 그립과 오른발 정렬 오류에서 시작됩니다. " +
+                   "어드레스 시 왼손의 너클이 위에서 바라보았을 때 최소 2~3개 노출되는 강한 그립(Strong Grip)을 쥐고 있는지 점검하세요. " +
+                   "또한, 다운스윙 시 골반 회전이 너무 빠르면 클럽 페이스가 열려 맞으므로 임팩트 때까지 가슴이 볼을 바라보게 한 뒤 오른팔을 강하게 돌려(릴리즈) 컵인 시키는 동작에 집중하십시오.";
+        }
+
+        // 2. 훅/좌측 미스 경향이 우세할 때
+        if (hookRatio > 0.35 && hookRatio > sliceRatio) {
+            return "💡 [벤 호건의 원포인트 레슨 - 훅 방지 처방]\n" +
+                   "훅은 임팩트 시 상체의 턴보다 손목 롤오버가 너무 급격하게 진행되어 페이스가 닫혀 맞을 때 유발됩니다. " +
+                   "백스윙 탑에서 왼손목이 꺾이지 않고 널판지처럼 일직선(Flat Wrist)을 이루도록 제어해야 합니다. " +
+                   "이후 다운스윙과 임팩트 과정에서는 오른쪽 골반(힙)을 타겟 방향으로 강하고 신속하게 턴해주어 손목의 과회전을 억제하는 상체 조화를 이끌어내십시오.";
+        }
+
+        // 3. 비거리 부족 및 숏 미스가 우세할 때
+        if (shortRatio > 0.35) {
+            return "💡 [벤 호건의 원포인트 레슨 - 비거리 증강 처방]\n" +
+                   "드라이버 비거리를 늘리려면 견고한 하체 지탱을 기반으로 코일링(상체 비틀림)을 완성해야 합니다. " +
+                   "백스윙 시 오른 무릎의 각도를 고정하고 상체를 최소 90도 이상 꼬아 에너지 축적을 극대화하십시오. " +
+                   "다운스윙의 시작은 팔이 아니라 반드시 왼쪽 골반을 타겟 뒤쪽으로 끌어당기는 체중 이동(Hip Turn)이 선행되어야 가속을 최대치로 얹을 수 있습니다.";
+        }
+
+        // 4. 3펏 다수 발생 시
+        if (stats.threePutts >= 2) {
+            return "💡 [벤 호건의 원포인트 레슨 - 퍼팅 일관성 처방]\n" +
+                   "퍼팅 미스의 절대적인 원인은 스윙 궤적 중 머리와 상체가 미세하게 움직이기 때문입니다. " +
+                   "스트로크가 완전히 종료되어 팔로스루가 멈출 때까지 시선은 볼이 있던 스팟을 지독하게 응시하며 골반의 움직임을 콘크리트처럼 붙잡아 두십시오. " +
+                   "시계추 흔들림처럼 앞뒤 테이크백 크기를 1:1로 칼같이 맞추면 장거리 퍼트 거리감이 확실해집니다.";
+        }
+
+        // 기본 처방 (안정적인 라운딩)
+        return "💡 [벤 호건의 원포인트 레슨 - 셋업 루틴 처방]\n" +
+               "오늘 매우 고른 샷 정합성을 보여주셨습니다. 스코어의 일관성을 더욱 높이려면 매 홀 어드레스 루틴을 신중하게 정립해야 합니다. " +
+               "클럽을 내려놓기 전 양발 스탠스 라인과 양 어깨가 가상의 타겟 라인과 칼같이 평행을 이루는지(스퀘어 셋업) 습관적으로 확인하십시오. " +
+               "골프의 90%는 공을 치기 전 셋업 자세에서 이미 결정됩니다.";
+    }
+
+    // 종합 통계 계산 및 보고서 텍스트 생성
     function generateReport() {
         const parSum = state.pars.reduce((a, b) => a + b, 0);
         let totalScore = parSum;
         let playedHoles = 0;
         
         let totalPutts = 0;
-        let threePuttHoles = 0;
+        let threePutts = 0;
         let puttHolesCount = 0;
 
-        let totalTeeShots = 0; // Par 3를 제외한 티샷 수
+        let totalTeeShots = 0; // Par3를 제외한 티샷 수
         let fwyHits = 0;       // 페어웨이 안착 수
-        let teeMissLeft = 0;   // 훅 미스
-        let teeMissRight = 0;  // 슬라이스 미스
+        
+        // 상세 통계 카운터
+        let stats = {
+            playedHoles: 0,
+            threePutts: 0,
+            teeSlice: 0,
+            teeFade: 0,
+            teeDraw: 0,
+            teeHook: 0,
+            teeShort: 0,
+            woodLeft: 0,
+            woodRight: 0,
+            ironLeft: 0,
+            ironRight: 0,
+            ironShort: 0
+        };
 
-        let girHits = 0;       // 그린 적중 수
-        let girMissLeftShort = 0;
-        let girMissRightShort = 0;
-        let girMissLong = 0;
-        let girMissShort = 0;
+        let girHits = 0;
 
-        let puttMissLeft = 0;
-        let puttMissRight = 0;
-        let puttMissShort = 0;
-        let puttMissLong = 0;
-
-        // 홀 바이 홀 데이터 기록 빌드용
         let holeDetailsText = '';
 
         state.holeLogs.forEach((log, idx) => {
@@ -638,50 +724,61 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isPlayed) {
                 totalScore += log.score;
                 playedHoles++;
+                stats.playedHoles++;
 
-                // 퍼팅 통계
+                // 퍼팅
                 if (log.putts !== null) {
                     totalPutts += log.putts;
                     puttHolesCount++;
                     if (log.putts >= 3) {
-                        threePuttHoles++;
+                        threePutts++;
+                        stats.threePutts++;
                     }
                 }
 
-                // 티샷 통계 (Par 3 홀 제외)
+                // 티샷 (Par 3 제외)
                 if (par !== 3) {
                     totalTeeShots++;
-                    if (log.teeDir === 'center') {
-                        fwyHits++;
-                    } else if (log.teeDir === 'left') {
-                        teeMissLeft++;
-                    } else if (log.teeDir === 'right') {
-                        teeMissRight++;
+                    if (log.teeDir === 'straight') {
+                        // 스트레이트이면서 OB/해저드가 아닐 때 FWY 안착 성공
+                        if (log.teeStatus !== 'ob' && log.teeStatus !== 'hazard') {
+                            fwyHits++;
+                        }
                     }
+                    
+                    // 티샷 구질 통계
+                    if (log.teeDir === 'slice') stats.teeSlice++;
+                    else if (log.teeDir === 'fade') stats.teeFade++;
+                    else if (log.teeDir === 'draw') stats.teeDraw++;
+                    else if (log.teeDir === 'strong_hook') stats.teeHook++;
+                    
+                    if (log.teeStatus === 'short') stats.teeShort++;
                 }
 
-                // 세컨샷 통계
-                if (log.gir === 'on') {
+                // 우드 통계
+                if (par !== 3 && log.wood) {
+                    if (log.wood === 'left') stats.woodLeft++;
+                    else if (log.wood === 'right') stats.woodRight++;
+                }
+
+                // 아이언 통계 (GIR)
+                if (log.iron === 'on') {
                     girHits++;
-                } else if (log.gir === 'off') {
-                    if (log.secondMiss === 'left_short') girMissLeftShort++;
-                    else if (log.secondMiss === 'right_short') girMissRightShort++;
-                    else if (log.secondMiss === 'long') girMissLong++;
-                    else if (log.secondMiss === 'short') girMissShort++;
+                } else if (log.iron) {
+                    if (log.iron === 'left') stats.ironLeft++;
+                    else if (log.iron === 'right') stats.ironRight++;
+                    else if (log.iron === 'short') stats.ironShort++;
                 }
 
-                // 퍼팅 미스 경향 통계
-                if (log.puttMiss === 'left') puttMissLeft++;
-                else if (log.puttMiss === 'right') puttMissRight++;
-                else if (log.puttMiss === 'short') puttMissShort++;
-                else if (log.puttMiss === 'long') puttMissLong++;
-
-                // 텍스트 리포트 홀별 라인 작성
-                const scoreLabel = log.score === -1 ? '버디 (-1)' :
+                // 텍스트 리포트 홀별 가공 라인 작성
+                const scoreLabel = log.score === -3 ? '알바 (-3)' :
+                                   log.score === -2 ? '이글 (-2)' :
+                                   log.score === -1 ? '버디 (-1)' :
                                    log.score === 0 ? '파 (E)    ' :
                                    log.score === 1 ? '보기 (+1) ' :
                                    log.score === 2 ? '더블 (+2) ' :
-                                   log.score === 3 ? '트리플 (+3)' : '기타 (+4) ';
+                                   log.score === 3 ? '트리플 (+3)' :
+                                   log.score === 4 ? '쿼드 (+4) ' : '기타 (+5) ';
 
                 const puttLabel = log.putts ? `${log.putts}펏${log.putts >= 3 ? ' ⚠️' : ''}` : '-';
                 
@@ -689,29 +786,42 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (par === 3) {
                     teeLogText = '[티샷] 아이언 티샷';
                 } else {
-                    const dirText = log.teeDir === 'center' ? '중앙 안착' : log.teeDir === 'left' ? '우측 슬라이스' : '좌측 훅';
-                    const statusText = log.teeStatus === 'hazard' ? ' (O.B/해저드)' : log.teeStatus === 'short' ? ' (거리짧음)' : '';
-                    teeLogText = `[티샷] ${dirText}${statusText}`;
+                    const dirTextMap = { 
+                        'straight': '스트레이트 안착', 'draw': '드로우 구질', 
+                        'fade': '페이드 구질', 'strong_hook': '강한 훅 미스', 'slice': '슬라이스 미스' 
+                    };
+                    const statusTextMap = { 
+                        'normal': '', 'long': ' (긺)', 'short': ' (짧음)', 
+                        'ob': ' (OB)', 'hazard': ' (해저드)' 
+                    };
+                    teeLogText = `[티샷] ${dirTextMap[log.teeDir] || '기록없음'}${statusTextMap[log.teeStatus] || ''}`;
                 }
 
-                const secondLogText = log.gir === 'on' ? '온그린 성공' : 
-                                      log.secondMiss === 'left_short' ? '그린 좌측 짧음' :
-                                      log.secondMiss === 'right_short' ? '그린 우측 짧음' :
-                                      log.secondMiss === 'long' ? '그린 길었음' :
-                                      log.secondMiss === 'short' ? '그린 짧았음' : '온그린 실패';
+                let woodLogText = '';
+                if (par === 3) {
+                    woodLogText = '없음';
+                } else {
+                    woodLogText = log.wood === 'normal' ? '정상' : log.wood === 'left' ? '왼쪽미스' : log.wood === 'right' ? '오른쪽미스' : '미사용';
+                }
 
-                const puttLogText = log.putts === 1 ? '1펏 컵인!' :
-                                    log.puttMiss === 'left' ? '첫 펏 왼쪽 빗나감' :
-                                    log.puttMiss === 'right' ? '첫 펏 오른쪽 빗나감' :
+                const ironLogText = log.iron === 'on' ? 'GIR 온그린' :
+                                    log.iron === 'left' ? '그린 좌측' :
+                                    log.iron === 'right' ? '그린 우측' :
+                                    log.iron === 'over' ? '그린 오버' :
+                                    log.iron === 'short' ? '그린 짧음' : '온그린 실패';
+
+                const puttLogText = log.putts === 1 ? '1펏 성공!' :
+                                    log.puttMiss === 'left' ? '첫 펏 왼쪽 미스' :
+                                    log.puttMiss === 'right' ? '첫 펏 오른쪽 미스' :
                                     log.puttMiss === 'short' ? '첫 펏 거리 짧음' :
                                     log.puttMiss === 'long' ? '첫 펏 거리 길음' : '안정적 마무리';
 
                 holeDetailsText += `• ${String(holeNum).padStart(2, '0')}번 홀 (Par ${par}) | ${scoreLabel} | ${puttLabel}\n`;
-                holeDetailsText += `  ${teeLogText}  [세컨] ${secondLogText}  [퍼팅] ${puttLogText}\n`;
+                holeDetailsText += `  ${teeLogText}  [우드] ${woodLogText}  [아이언] ${ironLogText}  [퍼팅] ${puttLogText}\n`;
             }
         });
 
-        // 1. 주요 지표 UI 노출
+        // 1. 통계 요약 카드 데이터 갱신
         const scoreDiff = totalScore - parSum;
         const diffText = scoreDiff === 0 ? 'E' : scoreDiff > 0 ? `+${scoreDiff}` : `${scoreDiff}`;
         
@@ -720,59 +830,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const avgPutts = puttHolesCount > 0 ? (totalPutts / puttHolesCount).toFixed(2) : '0';
         els.repAvgPutts.innerHTML = `${avgPutts}<small>개</small>`;
-        els.repThreePutts.textContent = `쓰리펏 이상 홀: ${threePuttHoles}회`;
+        els.repThreePutts.textContent = `쓰리펏 이상 홀: ${threePutts}회`;
 
         const fwyRate = totalTeeShots > 0 ? ((fwyHits / totalTeeShots) * 100).toFixed(1) : '0.0';
         els.repFwyRate.innerHTML = `${fwyRate}<small>%</small>`;
         els.repFwyDetail.textContent = `${totalTeeShots}회 중 ${fwyHits}회 안착`;
 
         const girRate = playedHoles > 0 ? ((girHits / playedHoles) * 100).toFixed(1) : '0.0';
-        els.repGIRRate = document.getElementById('rep-gir-rate');
-        els.repGIRRate.innerHTML = `${girRate}<small>%</small>`;
+        els.repGirRate.innerHTML = `${girRate}<small>%</small>`;
         els.repGirDetail.textContent = `18홀 중 ${girHits}홀 온그린`;
 
-        // 2. 미스 경향 텍스트 생성
+        // 2. 미스 경향 분석 문구 생성
         let teeMissAnalysis = '';
-        if (teeMissLeft === 0 && teeMissRight === 0) {
-            teeMissAnalysis = '안정적인 티샷 감각을 유지했습니다.';
+        if (stats.teeSlice + stats.teeFade === 0 && stats.teeHook + stats.teeDraw === 0) {
+            teeMissAnalysis = '안정적이고 곧바른 드라이버 샷 방향성을 보여주었습니다.';
         } else {
-            const majorTeeMiss = teeMissRight >= teeMissLeft ? `우측(슬라이스) 밀림 ${teeMissRight}회` : `좌측(훅) 감김 ${teeMissLeft}회`;
-            const minorTeeMiss = teeMissRight >= teeMissLeft ? `좌측(훅) ${teeMissLeft}회` : `우측(슬라이스) ${teeMissRight}회`;
-            teeMissAnalysis = `주요 미스: ${majorTeeMiss}, ${minorTeeMiss}`;
+            const sliceTotal = stats.teeSlice + stats.teeFade;
+            const hookTotal = stats.teeHook + stats.teeDraw;
+            teeMissAnalysis = sliceTotal >= hookTotal ? 
+                `주요 미스: 우측 슬라이스/페이드 편향 ${sliceTotal}회 (좌측 훅 ${hookTotal}회)` : 
+                `주요 미스: 좌측 훅/드로우 편향 ${hookTotal}회 (우측 슬라이스 ${sliceTotal}회)`;
         }
 
-        let girMissAnalysis = '';
-        const girMisses = [
-            { key: '그린 좌측 짧음', count: girMissLeftShort },
-            { key: '그린 우측 짧음', count: girMissRightShort },
-            { key: '길었음(Over)', count: girMissLong },
-            { key: '짧았음(Short)', count: girMissShort }
-        ].sort((a, b) => b.count - a.count);
-
-        if (girMisses[0].count === 0) {
-            girMissAnalysis = '세컨 어프로치 정합성이 뛰어났습니다.';
+        let ironMissAnalysis = '';
+        if (stats.ironLeft === 0 && stats.ironRight === 0 && stats.ironShort === 0) {
+            ironMissAnalysis = '정교한 아이언 샷과 높은 그린 안착 능력을 선보였습니다.';
         } else {
-            girMissAnalysis = `세컨샷 미스: 주로 [${girMisses[0].key} (${girMisses[0].count}회)] 구역으로 미스가 집중됨`;
+            const ironMisses = [
+                { k: '좌측 빗나감', c: stats.ironLeft },
+                { k: '우측 빗나감', c: stats.ironRight },
+                { k: '비거리 짧음', c: stats.ironShort }
+            ].sort((a, b) => b.c - a.c);
+            ironMissAnalysis = `아이언 미스: 주로 [${ironMisses[0].k} (${ironMisses[0].c}회)] 패턴이 최다 검출`;
         }
 
-        let puttMissAnalysis = '';
-        const puttMisses = [
-            { key: '오른쪽 빗나감', count: puttMissRight, desc: '슬라이스 라인 미스' },
-            { key: '왼쪽 빗나감', count: puttMissLeft, desc: '훅 라인 미스' },
-            { key: '거리 짧음', count: puttMissShort, desc: '과감하지 못한 퍼팅' },
-            { key: '거리 길음', count: puttMissLong, desc: '힘 조절 실패' }
-        ].sort((a, b) => b.count - a.count);
+        // 3. 벤 호건 원포인트 레슨 조언 추출
+        const benHoganAdviceText = getBenHoganAdvice(stats);
 
-        if (puttMisses[0].count === 0) {
-            puttMissAnalysis = '퍼팅 거리 및 에이밍 조절이 아주 안정적이었습니다.';
-        } else {
-            puttMissAnalysis = `• [${puttMisses[0].key}] ${puttMisses[0].desc} ${puttMisses[0].count}회\n`;
-            if (puttMisses[1].count > 0) {
-                puttMissAnalysis += `• [${puttMisses[1].key}] ${puttMisses[1].desc} ${puttMisses[1].count}회`;
-            }
-        }
-
-        // 3. 최종 공유 텍스트 조립
+        // 4. 최종 공유용 리포트 스트링 생성
         const todayStr = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
         
         const reportString = 
@@ -785,36 +880,38 @@ document.addEventListener('DOMContentLoaded', () => {
 📊 [1. 종합 스코어]
 • Total Score: ${totalScore}타 (기준 Par ${parSum} 대비 ${diffText})
 • 총 퍼트 수: ${totalPutts}개 (홀당 평균 ${avgPutts}개)
-• 쓰리펏 이상 홀: ${threePuttHoles}회
+• 쓰리펏 이상 홀: ${threePutts}회
 
-🎯 [2. 드라이버/세컨샷 경향 분석]
+🎯 [2. 드라이버/아이언 경향 분석]
 • 티샷 안착률(FWY): ${fwyRate}% (${totalTeeShots}번 중 ${fwyHits}번 안착)
   ⚠️ ${teeMissAnalysis}
 • 그린 적중률(GIR): ${girRate}% (18홀 중 ${girHits}홀 온그린)
-  ⚠️ ${girMissAnalysis}
+  ⚠️ ${ironMissAnalysis}
 
 ⛳️ [3. 퍼팅 미스 패턴 분석]
-• 주요 빗나감 원인:
-${puttMissAnalysis}
+• 평균 퍼팅 수: ${avgPutts}개 | 3펏 홀: ${threePutts}회
 
-🏆 [4. Hole-by-Hole 상세 복기]
+🎓 [4. 벤 호건의 원포인트 스킬 레슨]
+${benHoganAdviceText}
+
+🏆 [5. Hole-by-Hole 상세 복기]
 -----------------------------------------
 ${holeDetailsText.trim()}
 -----------------------------------------
 
-Generated by BirdieLog v2.0 🏌️‍♂️`;
+Generated by BirdieLog v3.0 🏌️‍♂️`;
 
         els.txtReportOutput.value = reportString;
     }
 
-    // 10. 복사 기능 및 토스트 알림
+    // 10. 복사 기능
     els.btnCopyReport.addEventListener('click', () => {
         const text = els.txtReportOutput.value;
         if (navigator.clipboard) {
             navigator.clipboard.writeText(text).then(() => {
                 showToast("클립보드에 리포트가 복사되었습니다!");
             }).catch(err => {
-                console.error("클립보드 복사 실패:", err);
+                console.error("복사 실패:", err);
                 fallbackCopyText(text);
             });
         } else {
@@ -828,7 +925,7 @@ Generated by BirdieLog v2.0 🏌️‍♂️`;
             document.execCommand('copy');
             showToast("클립보드에 리포트가 복사되었습니다! (Fallback)");
         } catch (err) {
-            alert("복사 기능이 지원되지 않는 브라우저입니다. 직접 선택하여 복사해주세요.");
+            alert("복사 실패. 직접 선택하여 복사해 주세요.");
         }
     }
 
@@ -840,18 +937,17 @@ Generated by BirdieLog v2.0 🏌️‍♂️`;
         }, 2500);
     }
 
-    // 11. 메인으로 리스타트
+    // 메인으로 리스타트
     els.btnRestart.addEventListener('click', () => {
         if (confirm("메인 화면으로 돌아가시겠습니까? (현재 라운딩 데이터는 저장됩니다)")) {
             showSection('sec-setup');
         }
     });
 
-    // 12. 어플리케이션 초기화 구동 시 로직
+    // 11. 초기화 구동 시 동작
     function initApp() {
         const hasSavedState = loadStateFromStorage();
         
-        // 설정 폼에 기존 값들 뿌리기
         if (state.clubName) els.inputClubName.value = state.clubName;
         if (state.courseOut) els.inputCourseOut.value = state.courseOut;
         if (state.courseIn) els.inputCourseIn.value = state.courseIn;
@@ -859,17 +955,15 @@ Generated by BirdieLog v2.0 🏌️‍♂️`;
 
         renderParGrid();
 
-        // 만약 이미 라운딩 중인 상태가 유효하다면 인게임으로 바로 복구
         if (hasSavedState && state.clubName) {
-            if (confirm("이전에 기록하던 라운딩 정보가 존재합니다. 이어서 작성하시겠습니까?")) {
+            if (confirm("이전에 기록하던 v3.0 라운딩 정보가 존재합니다. 이어서 작성하시겠습니까?")) {
                 initInGameUI();
                 showSection('sec-game');
             } else {
-                // 이어서 작성 안 함 ➔ 초기화
                 clearStorage();
                 state.currentHole = 1;
                 state.holeLogs = Array.from({ length: 18 }, () => ({
-                    score: null, teeDir: null, teeStatus: null, gir: null, secondMiss: null, putts: null, puttMiss: null
+                    score: null, teeDir: null, teeStatus: null, wood: null, iron: null, putts: null, puttMiss: null
                 }));
                 state.pars = Array(18).fill(4);
                 renderParGrid();
