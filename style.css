@@ -565,6 +565,11 @@ input[type="text"]:focus {
     background: #ffffff;
 }
 
+.tab-btn.disabled {
+    opacity: 0.25;
+    pointer-events: none;
+}
+
 .input-panels {
     flex: 1;
     padding: 16px;
