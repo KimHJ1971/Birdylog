@@ -16,7 +16,11 @@ document.addEventListener('DOMContentLoaded', () => {
             teeDir: null,      // strong_hook, draw, straight, fade, slice
             teeStatus: null,   // normal, long, short, ob, hazard
             wood: null,        // normal, left, right, none
-            iron: null,        // on, left, right, over, short
+            iron: {            // gir: 'on'|'off'|null, side: 'left'|'right'|null, depth: 'over'|'short'|null
+                gir: null,
+                side: null,
+                depth: null
+            },
             putts: null,       // 1, 2, 3 (3은 3이상)
             puttMiss: null     // left, right, short, long
         }))
@@ -105,6 +109,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (saved) {
             try {
                 const parsed = JSON.parse(saved);
+                
+                // 마이그레이션: holeLogs 내의 iron 필드가 객체가 아니거나 v4.0 규격일 때 v5.0으로 변환
+                if (parsed.holeLogs && Array.isArray(parsed.holeLogs)) {
+                    parsed.holeLogs = parsed.holeLogs.map(log => {
+                        if (log && (log.iron === null || typeof log.iron === 'string')) {
+                            const oldIron = log.iron;
+                            log.iron = {
+                                gir: oldIron === 'on' ? 'on' : (oldIron ? 'off' : null),
+                                side: (oldIron === 'left' || oldIron === 'right') ? oldIron : null,
+                                depth: (oldIron === 'over' || oldIron === 'short') ? oldIron : null
+                            };
+                        }
+                        return log;
+                    });
+                }
+                
                 state = { ...state, ...parsed };
                 return true;
             } catch (e) {
@@ -265,16 +285,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // 실시간 누적 스코어
         updateLiveScore();
 
-        // 2. Par 값에 따른 탭 자동 활성/비활성 제어 (Par 3/4/5)
+        // 2. Par 값에 따른 탭 자동 숨김 제어 (Par 3/4/5)
         if (currentPar === 3) {
-            els.tabTee.classList.add('disabled');
-            els.tabWood.classList.add('disabled');
+            els.tabTee.classList.add('hidden');
+            els.tabWood.classList.add('hidden');
         } else if (currentPar === 4) {
-            els.tabTee.classList.remove('disabled');
-            els.tabWood.classList.add('disabled');
+            els.tabTee.classList.remove('hidden');
+            els.tabWood.classList.add('hidden');
         } else {
-            els.tabTee.classList.remove('disabled');
-            els.tabWood.classList.remove('disabled');
+            els.tabTee.classList.remove('hidden');
+            els.tabWood.classList.remove('hidden');
         }
 
         // 3. 기록 요약 카드 데이터 갱신
@@ -283,8 +303,52 @@ document.addEventListener('DOMContentLoaded', () => {
         // 4. 입력 폼 컴포넌트 동기화
         syncInputComponents(log);
 
+        // 5. 입력 완료 탭 피드백 업데이트
+        updateTabRecordedStates();
+
         // 탭 상태 스코어로 복원
         switchInputTab('score');
+    }
+
+    // 입력 상태 실시간 탭 피드백 처리 함수
+    function updateTabRecordedStates() {
+        const holeIdx = state.currentHole - 1;
+        const currentPar = state.pars[holeIdx];
+        const log = state.holeLogs[holeIdx];
+
+        els.tabBtns.forEach(btn => {
+            const step = btn.dataset.step;
+            let isRecorded = false;
+
+            if (step === 'score') {
+                isRecorded = log.score !== null;
+            } else if (step === 'tee') {
+                if (currentPar === 3) {
+                    isRecorded = true;
+                } else {
+                    isRecorded = log.teeDir !== null && log.teeStatus !== null;
+                }
+            } else if (step === 'wood') {
+                if (currentPar === 3 || currentPar === 4) {
+                    isRecorded = true;
+                } else {
+                    isRecorded = log.wood !== null;
+                }
+            } else if (step === 'iron') {
+                if (log.iron) {
+                    isRecorded = log.iron.gir === 'on' || 
+                                 (log.iron.gir === 'off' && (log.iron.side !== null || log.iron.depth !== null));
+                }
+            } else if (step === 'putt') {
+                isRecorded = log.putts === 1 || (log.putts > 1 && log.puttMiss !== null);
+            }
+
+            if (isRecorded) {
+                btn.classList.add('recorded');
+            } else {
+                btn.classList.remove('recorded');
+            }
+        });
     }
 
     // 실시간 라이브 스코어 연산
@@ -382,13 +446,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // 4. 아이언 어프로치 (GIR)
-        if (log.iron === 'on') {
+        if (log.iron && log.iron.gir === 'on') {
             els.sumSecond.textContent = 'GIR 성공';
             els.sumSecond.style.color = 'var(--neon-green)';
-        } else if (log.iron) {
-            const ironLabelMap = { 'left': '왼쪽미스', 'right': '오른쪽미스', 'over': '그린오버', 'short': '짧음' };
-            els.sumSecond.textContent = ironLabelMap[log.iron] || '-';
-            els.sumSecond.style.color = 'var(--neon-yellow)';
+        } else if (log.iron && log.iron.gir === 'off') {
+            const misses = [];
+            if (log.iron.side === 'left') misses.push('왼쪽');
+            else if (log.iron.side === 'right') misses.push('오른쪽');
+
+            if (log.iron.depth === 'over') misses.push('오버');
+            else if (log.iron.depth === 'short') misses.push('짧음');
+
+            if (misses.length > 0) {
+                els.sumSecond.textContent = misses.join('+');
+                els.sumSecond.style.color = 'var(--neon-yellow)';
+            } else {
+                els.sumSecond.textContent = '미스';
+                els.sumSecond.style.color = 'var(--neon-yellow)';
+            }
         } else {
             els.sumSecond.textContent = '-';
             els.sumSecond.style.color = 'var(--text-primary)';
@@ -424,10 +499,28 @@ document.addEventListener('DOMContentLoaded', () => {
             if (log.wood === btn.dataset.wood) btn.classList.add('selected');
         });
 
-        // 5. 아이언샷 버튼
-        document.querySelectorAll('.iron-btn').forEach(btn => {
+        // 5. 아이언샷 버튼 동기화
+        const ironOnBtn = document.getElementById('btn-iron-on');
+        if (ironOnBtn) {
+            if (log.iron && log.iron.gir === 'on') {
+                ironOnBtn.classList.add('selected');
+            } else {
+                ironOnBtn.classList.remove('selected');
+            }
+        }
+
+        document.querySelectorAll('.iron-miss-btn').forEach(btn => {
+            const type = btn.dataset.type; // 'side' or 'depth'
+            const val = btn.dataset.val;   // 'left', 'right', 'over', 'short'
+            
             btn.classList.remove('selected');
-            if (log.iron === btn.dataset.iron) btn.classList.add('selected');
+            if (log.iron) {
+                if (type === 'side' && log.iron.side === val) {
+                    btn.classList.add('selected');
+                } else if (type === 'depth' && log.iron.depth === val) {
+                    btn.classList.add('selected');
+                }
+            }
         });
 
         // 6. 퍼팅 버튼
@@ -539,22 +632,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 아이언샷 선택 (어프로치)
-    document.querySelectorAll('.iron-btn').forEach(btn => {
+    // 5. 아이언 온그린 (GIR 성공) 버튼 클릭
+    const ironOnBtn = document.getElementById('btn-iron-on');
+    if (ironOnBtn) {
+        ironOnBtn.addEventListener('click', () => {
+            const holeIdx = state.currentHole - 1;
+            state.holeLogs[holeIdx].iron = {
+                gir: 'on',
+                side: null,
+                depth: null
+            };
+            saveStateToStorage();
+            updateHoleRecordScreen();
+            setTimeout(() => switchInputTab('putt'), 250);
+        });
+    }
+
+    // 아이언 미스 버튼 클릭
+    document.querySelectorAll('.iron-miss-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            const iron = e.currentTarget.dataset.iron;
-            state.holeLogs[state.currentHole - 1].iron = iron;
+            const type = e.currentTarget.dataset.type; // 'side' or 'depth'
+            const val = e.currentTarget.dataset.val;   // 'left', 'right', 'over', 'short'
+            const holeIdx = state.currentHole - 1;
             
-            if (iron === 'on') {
-                // 온그린 시 퍼팅 탭으로 바로 이동
-                saveStateToStorage();
-                updateHoleRecordScreen();
-                setTimeout(() => switchInputTab('putt'), 250);
-            } else {
-                saveStateToStorage();
-                updateHoleRecordScreen();
-                setTimeout(() => switchInputTab('putt'), 250); // 오프그린이어도 퍼팅으로 안내
+            if (!state.holeLogs[holeIdx].iron || typeof state.holeLogs[holeIdx].iron === 'string') {
+                state.holeLogs[holeIdx].iron = { gir: null, side: null, depth: null };
             }
+            
+            const iron = state.holeLogs[holeIdx].iron;
+            iron.gir = 'off';
+
+            if (type === 'side') {
+                iron.side = (iron.side === val) ? null : val;
+            } else if (type === 'depth') {
+                iron.depth = (iron.depth === val) ? null : val;
+            }
+
+            saveStateToStorage();
+            updateHoleRecordScreen();
         });
     });
 
@@ -610,11 +725,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 기록 초기화
     els.btnResetData.addEventListener('click', () => {
-        if (confirm("정말 모든 기록을 삭제하고 v4.0 세팅 화면으로 가시겠습니까?")) {
+        if (confirm("정말 모든 기록을 삭제하고 v5.0 세팅 화면으로 가시겠습니까?")) {
             clearStorage();
             state.currentHole = 1;
             state.holeLogs = Array.from({ length: 18 }, () => ({
-                score: null, teeDir: null, teeStatus: null, wood: null, iron: null, putts: null, puttMiss: null
+                score: null, teeDir: null, teeStatus: null, wood: null, 
+                iron: { gir: null, side: null, depth: null }, 
+                putts: null, puttMiss: null
             }));
             
             els.inputClubName.value = '';
@@ -717,7 +834,8 @@ document.addEventListener('DOMContentLoaded', () => {
             woodRight: 0,
             ironLeft: 0,
             ironRight: 0,
-            ironShort: 0
+            ironShort: 0,
+            ironOver: 0 // 신규 추가
         };
 
         let girHits = 0;
@@ -770,12 +888,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // 아이언 통계 (GIR)
-                if (log.iron === 'on') {
+                if (log.iron && log.iron.gir === 'on') {
                     girHits++;
-                } else if (log.iron) {
-                    if (log.iron === 'left') stats.ironLeft++;
-                    else if (log.iron === 'right') stats.ironRight++;
-                    else if (log.iron === 'short') stats.ironShort++;
+                } else if (log.iron && log.iron.gir === 'off') {
+                    if (log.iron.side === 'left') stats.ironLeft++;
+                    else if (log.iron.side === 'right') stats.ironRight++;
+                    
+                    if (log.iron.depth === 'over') stats.ironOver++;
+                    else if (log.iron.depth === 'short') stats.ironShort++;
                 }
 
                 // 텍스트 리포트 홀별 가공 라인 작성
@@ -812,11 +932,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     woodLogText = log.wood === 'normal' ? '정상' : log.wood === 'left' ? '왼쪽미스' : log.wood === 'right' ? '오른쪽미스' : '미사용';
                 }
 
-                const ironLogText = log.iron === 'on' ? 'GIR 온그린' :
-                                    log.iron === 'left' ? '그린 좌측' :
-                                    log.iron === 'right' ? '그린 우측' :
-                                    log.iron === 'over' ? '그린 오버' :
-                                    log.iron === 'short' ? '그린 짧음' : '온그린 실패';
+                let ironLogText = '';
+                if (log.iron && log.iron.gir === 'on') {
+                    ironLogText = 'GIR 온그린';
+                } else if (log.iron && log.iron.gir === 'off') {
+                    const misses = [];
+                    if (log.iron.side === 'left') misses.push('그린 좌측');
+                    else if (log.iron.side === 'right') misses.push('그린 우측');
+                    
+                    if (log.iron.depth === 'over') misses.push('그린 오버');
+                    else if (log.iron.depth === 'short') misses.push('그린 짧음');
+                    
+                    if (misses.length > 0) {
+                        ironLogText = misses.join(' ');
+                    } else {
+                        ironLogText = '온그린 실패';
+                    }
+                } else {
+                    ironLogText = '기록없음';
+                }
 
                 const puttLogText = log.putts === 1 ? '1펏 성공!' :
                                     log.puttMiss === 'left' ? '첫 펏 왼쪽 미스' :
@@ -861,13 +995,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         let ironMissAnalysis = '';
-        if (stats.ironLeft === 0 && stats.ironRight === 0 && stats.ironShort === 0) {
+        if (stats.ironLeft === 0 && stats.ironRight === 0 && stats.ironShort === 0 && stats.ironOver === 0) {
             ironMissAnalysis = '정교한 아이언 샷과 높은 그린 안착 능력을 선보였습니다.';
         } else {
             const ironMisses = [
                 { k: '좌측 빗나감', c: stats.ironLeft },
                 { k: '우측 빗나감', c: stats.ironRight },
-                { k: '비거리 짧음', c: stats.ironShort }
+                { k: '비거리 짧음', c: stats.ironShort },
+                { k: '그린 오버', c: stats.ironOver }
             ].sort((a, b) => b.c - a.c);
             ironMissAnalysis = `아이언 미스: 주로 [${ironMisses[0].k} (${ironMisses[0].c}회)] 패턴이 최다 검출`;
         }
@@ -907,7 +1042,7 @@ ${benHoganAdviceText}
 ${holeDetailsText.trim()}
 -----------------------------------------
 
-Generated by BirdieLog v4.0 🏌️‍♂️`;
+Generated by BirdieLog v5.0 🏌️‍♂️`;
 
         els.txtReportOutput.value = reportString;
     }
@@ -964,14 +1099,16 @@ Generated by BirdieLog v4.0 🏌️‍♂️`;
         renderParGrid();
 
         if (hasSavedState && state.clubName) {
-            if (confirm("이전에 기록하던 v4.0 라운딩 정보가 존재합니다. 이어서 작성하시겠습니까?")) {
+            if (confirm("이전에 기록하던 라운딩 정보가 존재합니다. 이어서 작성하시겠습니까?")) {
                 initInGameUI();
                 showSection('sec-game');
             } else {
                 clearStorage();
                 state.currentHole = 1;
                 state.holeLogs = Array.from({ length: 18 }, () => ({
-                    score: null, teeDir: null, teeStatus: null, wood: null, iron: null, putts: null, puttMiss: null
+                    score: null, teeDir: null, teeStatus: null, wood: null, 
+                    iron: { gir: null, side: null, depth: null }, 
+                    putts: null, puttMiss: null
                 }));
                 state.pars = Array(18).fill(4);
                 renderParGrid();

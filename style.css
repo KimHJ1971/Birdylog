@@ -570,6 +570,21 @@ input[type="text"]:focus {
     pointer-events: none;
 }
 
+.tab-btn.hidden {
+    display: none !important;
+}
+
+.tab-btn.recorded {
+    background-color: #cbd5e1 !important;
+    color: #94a3b8 !important;
+}
+
+.tab-btn.recorded.active {
+    background-color: #ffffff !important;
+    color: #475569 !important;
+    border-bottom: 4px solid #475569 !important;
+}
+
 .input-panels {
     flex: 1;
     padding: 16px;
@@ -725,19 +740,45 @@ input[type="text"]:focus {
     width: 100%;
 }
 
-.iron-btn-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+/* 아이언 다중 미스 2열 그리드 스타일 */
+.iron-gir-btn {
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.iron-gir-btn.selected {
+    background: linear-gradient(135deg, #39ff14, #00d800) !important;
+    color: #000000 !important;
+}
+
+.iron-miss-wrapper {
+    display: flex;
+    gap: 12px;
     width: 100%;
 }
 
-.iron-btn-grid button:first-child {
-    grid-column: span 2; /* 온그린 버튼 가로 완전 확장 */
-    background: rgba(57, 255, 20, 0.05);
+.iron-miss-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
-.iron-btn-grid button:first-child.selected {
-    background: linear-gradient(135deg, #39ff14, #00d800);
+
+.iron-miss-group-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.iron-miss-btn {
+    width: 100%;
+    font-size: 15px; /* 모바일 폭에 맞춤 */
+    min-height: 52px;
+}
+
+.iron-miss-btn.selected {
+    background: linear-gradient(135deg, #00e5ff, #00b0ff) !important;
+    color: #000000 !important;
 }
 
 /* 퍼팅 수 및 기타 */
