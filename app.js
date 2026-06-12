@@ -26,6 +26,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }))
     };
 
+    // 1.5 실행 취소(Undo) 스택 및 테마 상태 관리
+    let stateHistory = [];
+    let currentTheme = localStorage.getItem('birdielog_theme') || 'dark';
+
+    function pushStateToHistory() {
+        stateHistory.push(JSON.parse(JSON.stringify(state)));
+        if (stateHistory.length > 25) stateHistory.shift(); // 최대 25개 저장
+    }
+
     // 2. DOM 요소 참조
     const els = {
         secSetup: document.getElementById('sec-setup'),
@@ -41,6 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
         btnSaveTemplate: document.getElementById('btn-save-template'),
         btnLoadTemplate: document.getElementById('btn-load-template'),
         btnStartGame: document.getElementById('btn-start-game'),
+        btnPresetStandard: document.getElementById('btn-preset-standard'),
+        btnPresetShort: document.getElementById('btn-preset-short'),
 
         // 인게임 화면
         infoCurrentHole: document.getElementById('info-current-hole'),
@@ -54,9 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
         sumSecond: document.getElementById('sum-second'),
         sumPutt: document.getElementById('sum-putt'),
 
-        // 콤보박스 엘리먼트
-        selectScore: document.getElementById('select-score'),
-        selectTeeStatus: document.getElementById('select-tee-status'),
         guideScore: document.getElementById('guide-score'),
 
         tabTee: document.getElementById('tab-tee'),
@@ -69,6 +77,8 @@ document.addEventListener('DOMContentLoaded', () => {
         btnNextHole: document.getElementById('btn-next-hole'),
         btnFinishGame: document.getElementById('btn-finish-game'),
         btnResetData: document.getElementById('btn-reset-data'),
+        btnUndo: document.getElementById('btn-undo'),
+        btnToggleTheme: document.getElementById('btn-toggle-theme'),
 
         // 리포트 화면
         repTotalScore: document.getElementById('rep-total-score'),
@@ -82,6 +92,13 @@ document.addEventListener('DOMContentLoaded', () => {
         txtReportOutput: document.getElementById('txt-report-output'),
         btnRestart: document.getElementById('btn-restart'),
         btnCopyReport: document.getElementById('btn-copy-report'),
+        btnDownloadCard: document.getElementById('btn-download-card'),
+        canvasCard: document.getElementById('canvas-card'),
+        scorecardTable: document.getElementById('scorecard-table'),
+        gaugeFwy: document.getElementById('gauge-fwy'),
+        gaugeGir: document.getElementById('gauge-gir'),
+        gaugeFwyVal: document.getElementById('gauge-fwy-val'),
+        gaugeGirVal: document.getElementById('gauge-gir-val'),
 
         // 공통
         toast: document.getElementById('toast')
@@ -481,8 +498,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 입력 컴포넌트 상태 연동
     function syncInputComponents(log) {
-        // 1. 스코어 콤보박스
-        els.selectScore.value = log.score !== null ? String(log.score) : "";
+        // 1. 스코어 버튼 그리드 동기화
+        document.querySelectorAll('.score-btn').forEach(btn => {
+            btn.classList.remove('selected');
+            if (log.score !== null && String(log.score) === btn.dataset.score) {
+                btn.classList.add('selected');
+            }
+        });
 
         // 2. 티샷 방향 5단계 버튼
         document.querySelectorAll('.tee-dir').forEach(btn => {
@@ -490,8 +512,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (log.teeDir === btn.dataset.dir) btn.classList.add('selected');
         });
 
-        // 3. 드라이버 상태 콤보박스
-        els.selectTeeStatus.value = log.teeStatus !== null ? log.teeStatus : "";
+        // 3. 드라이버 상태 버튼 그리드 동기화
+        document.querySelectorAll('.tee-status-btn').forEach(btn => {
+            btn.classList.remove('selected');
+            if (log.teeStatus === btn.dataset.status) {
+                btn.classList.add('selected');
+            }
+        });
 
         // 4. 우드/유틸샷 버튼
         document.querySelectorAll('.wood-btn').forEach(btn => {
@@ -561,28 +588,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 8. 터치 및 콤보박스 리스너 할당 & 스마트 오토포커스
-    // 스코어 콤보박스 선택
-    els.selectScore.addEventListener('change', (e) => {
-        const val = parseInt(e.target.value, 10);
-        const holeIdx = state.currentHole - 1;
-        state.holeLogs[holeIdx].score = val;
+    // 8. 터치 및 샷 입력 리스너 할당 & 스마트 오토포커스
+    // 스코어 버튼 그리드 선택
+    document.querySelectorAll('.score-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            pushStateToHistory();
+            const val = parseInt(e.currentTarget.dataset.score, 10);
+            const holeIdx = state.currentHole - 1;
+            state.holeLogs[holeIdx].score = val;
 
-        saveStateToStorage();
-        renderHoleNavigation();
-        updateHoleRecordScreen();
+            saveStateToStorage();
+            renderHoleNavigation();
+            updateHoleRecordScreen();
 
-        // Par 3면 티샷/우드를 스킵하고 아이언 탭으로 직진
-        if (state.pars[holeIdx] === 3) {
-            setTimeout(() => switchInputTab('iron'), 250);
-        } else {
-            setTimeout(() => switchInputTab('tee'), 250);
-        }
+            // Par 3면 티샷/우드를 스킵하고 아이언 탭으로 직진
+            if (state.pars[holeIdx] === 3) {
+                setTimeout(() => switchInputTab('iron'), 250);
+            } else {
+                setTimeout(() => switchInputTab('tee'), 250);
+            }
+        });
     });
 
     // 티샷 방향 선택 (5단계)
     document.querySelectorAll('.tee-dir').forEach(btn => {
         btn.addEventListener('click', (e) => {
+            pushStateToHistory();
             const dir = e.currentTarget.dataset.dir;
             const holeIdx = state.currentHole - 1;
             state.holeLogs[holeIdx].teeDir = dir;
@@ -604,25 +635,29 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 드라이버 상태 콤보박스 선택
-    els.selectTeeStatus.addEventListener('change', (e) => {
-        const status = e.target.value;
-        const holeIdx = state.currentHole - 1;
-        state.holeLogs[holeIdx].teeStatus = status;
-        
-        saveStateToStorage();
-        updateHoleRecordScreen();
-        
-        if (state.pars[holeIdx] === 4) {
-            setTimeout(() => switchInputTab('iron'), 250);
-        } else {
-            setTimeout(() => switchInputTab('wood'), 250);
-        }
+    // 드라이버 상태 버튼 그리드 선택
+    document.querySelectorAll('.tee-status-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            pushStateToHistory();
+            const status = e.currentTarget.dataset.status;
+            const holeIdx = state.currentHole - 1;
+            state.holeLogs[holeIdx].teeStatus = status;
+            
+            saveStateToStorage();
+            updateHoleRecordScreen();
+            
+            if (state.pars[holeIdx] === 4) {
+                setTimeout(() => switchInputTab('iron'), 250);
+            } else {
+                setTimeout(() => switchInputTab('wood'), 250);
+            }
+        });
     });
 
     // 우드/유틸샷 선택
     document.querySelectorAll('.wood-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
+            pushStateToHistory();
             const wood = e.currentTarget.dataset.wood;
             state.holeLogs[state.currentHole - 1].wood = wood;
             
@@ -636,6 +671,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ironOnBtn = document.getElementById('btn-iron-on');
     if (ironOnBtn) {
         ironOnBtn.addEventListener('click', () => {
+            pushStateToHistory();
             const holeIdx = state.currentHole - 1;
             state.holeLogs[holeIdx].iron = {
                 gir: 'on',
@@ -651,6 +687,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 아이언 미스 버튼 클릭
     document.querySelectorAll('.iron-miss-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
+            pushStateToHistory();
             const type = e.currentTarget.dataset.type; // 'side' or 'depth'
             const val = e.currentTarget.dataset.val;   // 'left', 'right', 'over', 'short'
             const holeIdx = state.currentHole - 1;
@@ -676,6 +713,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 퍼팅 수 선택
     document.querySelectorAll('.putt-count').forEach(btn => {
         btn.addEventListener('click', (e) => {
+            pushStateToHistory();
             const putts = parseInt(e.currentTarget.dataset.putts, 10);
             state.holeLogs[state.currentHole - 1].putts = putts;
             
@@ -695,6 +733,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 퍼팅 미스 패턴 선택
     document.querySelectorAll('.putt-miss').forEach(btn => {
         btn.addEventListener('click', (e) => {
+            pushStateToHistory();
             const miss = e.currentTarget.dataset.miss;
             state.holeLogs[state.currentHole - 1].puttMiss = miss;
             
@@ -722,6 +761,84 @@ document.addEventListener('DOMContentLoaded', () => {
 
     els.btnPrevHole.addEventListener('click', goToPrevHole);
     els.btnNextHole.addEventListener('click', goToNextHole);
+
+    // 실행 취소(Undo) 핸들러
+    function undoLastAction() {
+        if (stateHistory.length > 0) {
+            state = stateHistory.pop();
+            saveStateToStorage();
+            renderHoleNavigation();
+            updateHoleRecordScreen();
+            showToast("직전 입력이 취소되었습니다.");
+        } else {
+            showToast("실행 취소할 기록이 없습니다.");
+        }
+    }
+    els.btnUndo.addEventListener('click', undoLastAction);
+
+    // 주야간 테마 적용 함수
+    function applyTheme(theme) {
+        const wrapper = document.querySelector('.device-wrapper');
+        if (theme === 'light') {
+            wrapper.classList.add('light-theme');
+            els.btnToggleTheme.innerHTML = '<i class="ph ph-moon"></i>';
+        } else {
+            wrapper.classList.remove('light-theme');
+            els.btnToggleTheme.innerHTML = '<i class="ph ph-sun-dim"></i>';
+        }
+        localStorage.setItem('birdielog_theme', theme);
+        currentTheme = theme;
+    }
+    els.btnToggleTheme.addEventListener('click', () => {
+        applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+    });
+
+    // Par 빠른 프리셋 설정
+    els.btnPresetStandard.addEventListener('click', () => {
+        pushStateToHistory();
+        state.pars = [4, 4, 3, 5, 4, 4, 3, 4, 5, 4, 4, 3, 5, 4, 4, 3, 4, 5];
+        renderParGrid();
+        saveStateToStorage();
+        showToast("표준 코스(Par 72)로 일괄 설정되었습니다.");
+    });
+
+    els.btnPresetShort.addEventListener('click', () => {
+        pushStateToHistory();
+        state.pars = Array(18).fill(3);
+        renderParGrid();
+        saveStateToStorage();
+        showToast("숏 코스(Par 54)로 일괄 설정되었습니다.");
+    });
+
+    // 엄지손가락 스와이프 제스처 네비게이션
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+
+    const gestureArea = document.querySelector('.input-panel-wrapper');
+    if (gestureArea) {
+        gestureArea.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        gestureArea.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            touchEndY = e.changedTouches[0].screenY;
+            
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
+            
+            if (Math.abs(diffX) > 70 && Math.abs(diffY) < 40) {
+                if (diffX > 0) {
+                    goToPrevHole();
+                } else {
+                    goToNextHole();
+                }
+            }
+        }, { passive: true });
+    }
 
     // 기록 초기화
     els.btnResetData.addEventListener('click', () => {
@@ -1042,9 +1159,297 @@ ${benHoganAdviceText}
 ${holeDetailsText.trim()}
 -----------------------------------------
 
-Generated by BirdieLog v5.0 🏌️‍♂️`;
+Generated by BirdieLog v6.0 🏌️‍♂️`;
 
         els.txtReportOutput.value = reportString;
+
+        // v6.0 신규 비주얼 리포트 렌더링
+        updateVisualGauges(fwyRate, girRate);
+        renderScorecardTable();
+    }
+
+    // SVG 게이지 갱신 로직
+    function updateVisualGauges(fwyRate, girRate) {
+        const fwyVal = parseFloat(fwyRate);
+        const girVal = parseFloat(girRate);
+        const strokeDash = 251.2; // 2 * Math.PI * 40
+        
+        // FWY 게이지
+        if (els.gaugeFwy) {
+            const fwyOffset = strokeDash - (strokeDash * (fwyVal / 100));
+            els.gaugeFwy.style.strokeDashoffset = fwyOffset;
+            els.gaugeFwyVal.textContent = `${fwyRate}%`;
+        }
+        
+        // GIR 게이지
+        if (els.gaugeGir) {
+            const girOffset = strokeDash - (strokeDash * (girVal / 100));
+            els.gaugeGir.style.strokeDashoffset = girOffset;
+            els.gaugeGirVal.textContent = `${girRate}%`;
+        }
+    }
+
+    // 18홀 격자 스코어카드 동적 빌드
+    function renderScorecardTable() {
+        if (!els.scorecardTable) return;
+        
+        let headerRow = '<th>홀</th>';
+        let parRow = '<td>Par</td>';
+        let scoreRow = '<td>타수</td>';
+        let puttRow = '<td>퍼팅</td>';
+        
+        for (let i = 0; i < 18; i++) {
+            const holeNum = i + 1;
+            const par = state.pars[i];
+            const log = state.holeLogs[i];
+            const score = log.score;
+            
+            headerRow += `<th>${holeNum}</th>`;
+            parRow += `<td>${par}</td>`;
+            
+            if (score === null) {
+                scoreRow += `<td>-</td>`;
+            } else {
+                const finalScore = par + score;
+                let scoreClass = '';
+                
+                if (score === -1) scoreClass = 'score-circle'; // 버디
+                else if (score === -2 || score === -3) scoreClass = 'score-oval'; // 이글/알바트로스
+                else if (score === 1) scoreClass = 'score-square'; // 보기
+                else if (score >= 2) scoreClass = 'score-double-square'; // 더블 보기 이상
+                
+                if (scoreClass) {
+                    scoreRow += `<td><span class="${scoreClass}">${finalScore}</span></td>`;
+                } else {
+                    scoreRow += `<td>${finalScore}</td>`; // 파 (E)
+                }
+            }
+            
+            puttRow += `<td>${log.putts !== null ? log.putts : '-'}</td>`;
+        }
+        
+        els.scorecardTable.innerHTML = `
+            <thead>
+                <tr>${headerRow}</tr>
+            </thead>
+            <tbody>
+                <tr>${parRow}</tr>
+                <tr>${scoreRow}</tr>
+                <tr>${puttRow}</tr>
+            </tbody>
+        `;
+    }
+
+    // Canvas 기반 카드 이미지 다운로드 기능
+    function downloadScoreCardImage() {
+        const canvas = els.canvasCard;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = 1000;
+        canvas.height = 1000;
+        
+        // 1. 그라데이션 배경
+        const grad = ctx.createLinearGradient(0, 0, 0, 1000);
+        grad.addColorStop(0, '#0c111f');
+        grad.addColorStop(1, '#05070e');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 1000, 1000);
+        
+        // 2. 테두리 보더
+        ctx.strokeStyle = '#222e47';
+        ctx.lineWidth = 20;
+        ctx.strokeRect(10, 10, 980, 980);
+        
+        // 3. 타이틀
+        ctx.font = 'bold 44px sans-serif';
+        ctx.fillStyle = '#00e5ff';
+        ctx.fillText('🏆 BirdieLog AI 스코어 카드', 80, 100);
+        
+        // 정보 출력
+        ctx.font = '800 28px sans-serif';
+        ctx.fillStyle = '#cbd5e1';
+        const todayStr = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+        ctx.fillText(`📍 골프장: ${state.clubName} (${state.courseOut} / ${state.courseIn})`, 80, 170);
+        ctx.fillText(`🗓 일자: ${todayStr}`, 80, 220);
+        ctx.fillText(`👤 플레이어: ${state.players}`, 80, 270);
+        
+        // 4. 주요 통계 박스
+        ctx.fillStyle = '#0f172a';
+        ctx.strokeStyle = '#222e47';
+        ctx.lineWidth = 3;
+        
+        // 스코어 박스
+        ctx.beginPath();
+        ctx.roundRect(80, 320, 380, 220, 16);
+        ctx.fill();
+        ctx.stroke();
+        
+        // 게이지 박스
+        ctx.beginPath();
+        ctx.roundRect(540, 320, 380, 220, 16);
+        ctx.fill();
+        ctx.stroke();
+        
+        const parSum = state.pars.reduce((a, b) => a + b, 0);
+        let totalScore = parSum;
+        let playedHoles = 0;
+        let totalPutts = 0;
+        let puttHolesCount = 0;
+        let totalTeeShots = 0;
+        let fwyHits = 0;
+        let girHits = 0;
+        
+        state.holeLogs.forEach((log, idx) => {
+            if (log.score !== null) {
+                totalScore += log.score;
+                playedHoles++;
+                if (log.putts !== null) {
+                    totalPutts += log.putts;
+                    puttHolesCount++;
+                }
+                if (state.pars[idx] !== 3) {
+                    totalTeeShots++;
+                    if (log.teeDir === 'straight' && log.teeStatus !== 'ob' && log.teeStatus !== 'hazard') {
+                        fwyHits++;
+                    }
+                }
+                if (log.iron && log.iron.gir === 'on') {
+                    girHits++;
+                }
+            }
+        });
+        
+        const scoreDiff = totalScore - parSum;
+        const diffText = scoreDiff === 0 ? 'E' : scoreDiff > 0 ? `+${scoreDiff}` : `${scoreDiff}`;
+        const avgPutts = puttHolesCount > 0 ? (totalPutts / puttHolesCount).toFixed(2) : '0';
+        const fwyRate = totalTeeShots > 0 ? ((fwyHits / totalTeeShots) * 100).toFixed(1) : '0.0';
+        const girRate = playedHoles > 0 ? ((girHits / playedHoles) * 100).toFixed(1) : '0.0';
+
+        ctx.font = '800 24px sans-serif';
+        ctx.fillStyle = '#64748b';
+        ctx.fillText('최종 스코어', 120, 370);
+        ctx.fillText('평균 퍼트수', 120, 480);
+        
+        ctx.font = '900 48px sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(`${totalScore}타 (${diffText})`, 120, 430);
+        ctx.fillText(`${avgPutts}개`, 120, 530);
+        
+        ctx.font = '800 24px sans-serif';
+        ctx.fillStyle = '#64748b';
+        ctx.fillText('티샷 안착률 (FWY)', 580, 370);
+        ctx.fillText('그린 적중률 (GIR)', 580, 480);
+        
+        ctx.font = '900 48px sans-serif';
+        ctx.fillStyle = '#39ff14';
+        ctx.fillText(`${fwyRate}%`, 580, 430);
+        ctx.fillStyle = '#00e5ff';
+        ctx.fillText(`${girRate}%`, 580, 530);
+        
+        // 5. 18홀 격자 스코어카드 전반/후반 그리기
+        drawScorecardOnCanvas(ctx, 80, 580, 0, 9);
+        drawScorecardOnCanvas(ctx, 80, 740, 9, 18);
+        
+        ctx.font = 'italic 800 22px sans-serif';
+        ctx.fillStyle = '#475569';
+        ctx.fillText('Generated by BirdieLog v6.0 Premium', 320, 940);
+        
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = `BirdieLog_${state.clubName}_${todayStr}.png`;
+        link.href = dataUrl;
+        link.click();
+    }
+
+    function drawScorecardOnCanvas(ctx, startX, startY, startHoleIdx, endHoleIdx) {
+        const boxW = 84; 
+        const boxH = 45; 
+        
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(startX, startY, 840, boxH * 3);
+        ctx.strokeStyle = '#222e47';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(startX, startY, 840, boxH * 3);
+        
+        ctx.beginPath();
+        ctx.moveTo(startX, startY + boxH); ctx.lineTo(startX + 840, startY + boxH);
+        ctx.moveTo(startX, startY + boxH * 2); ctx.lineTo(startX + 840, startY + boxH * 2);
+        ctx.stroke();
+        
+        ctx.font = 'bold 16px sans-serif';
+        ctx.fillStyle = '#cbd5e1';
+        ctx.textAlign = 'center';
+        ctx.fillText('홀', startX + boxW/2, startY + boxH/2 + 6);
+        ctx.fillText('Par', startX + boxW/2, startY + boxH + boxH/2 + 6);
+        ctx.fillText('타수', startX + boxW/2, startY + boxH * 2 + boxH/2 + 6);
+        
+        for (let i = 0; i < 9; i++) {
+            const idx = startHoleIdx + i;
+            const holeNum = idx + 1;
+            const par = state.pars[idx];
+            const log = state.holeLogs[idx];
+            const score = log.score;
+            const x = startX + boxW * (i + 1);
+            
+            ctx.beginPath();
+            ctx.moveTo(x, startY); ctx.lineTo(x, startY + boxH * 3);
+            ctx.stroke();
+            
+            ctx.font = '900 18px sans-serif';
+            ctx.fillStyle = '#cbd5e1';
+            ctx.fillText(String(holeNum), x + boxW/2, startY + boxH/2 + 6);
+            
+            ctx.font = '800 18px sans-serif';
+            ctx.fillStyle = '#64748b';
+            ctx.fillText(String(par), x + boxW/2, startY + boxH + boxH/2 + 6);
+            
+            if (score === null) {
+                ctx.fillStyle = '#475569';
+                ctx.fillText('-', x + boxW/2, startY + boxH * 2 + boxH/2 + 6);
+            } else {
+                const finalScore = par + score;
+                const centerX = x + boxW/2;
+                const centerY = startY + boxH * 2 + boxH/2;
+                
+                if (score === -1) { 
+                    ctx.strokeStyle = '#ff3366';
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, 15, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.fillStyle = '#ff3366';
+                } else if (score === -2 || score === -3) { 
+                    ctx.strokeStyle = '#fff200';
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.ellipse(centerX, centerY, 21, 14, 0, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.fillStyle = '#fff200';
+                } else if (score === 1) { 
+                    ctx.strokeStyle = '#00e5ff';
+                    ctx.lineWidth = 2.5;
+                    ctx.strokeRect(centerX - 13, centerY - 13, 26, 26);
+                    ctx.fillStyle = '#00e5ff';
+                } else if (score >= 2) { 
+                    ctx.strokeStyle = '#bd00ff';
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeRect(centerX - 15, centerY - 15, 30, 30);
+                    ctx.strokeRect(centerX - 11, centerY - 11, 22, 22);
+                    ctx.fillStyle = '#bd00ff';
+                } else {
+                    ctx.fillStyle = '#ffffff'; 
+                }
+                ctx.font = '900 18px sans-serif';
+                ctx.fillText(String(finalScore), centerX, centerY + 6);
+            }
+        }
+        ctx.textAlign = 'left'; 
+    }
+
+    // 카드 다운로드 리스너 연동
+    if (els.btnDownloadCard) {
+        els.btnDownloadCard.addEventListener('click', downloadScoreCardImage);
     }
 
     // 10. 복사 기능
@@ -1117,6 +1522,9 @@ Generated by BirdieLog v5.0 🏌️‍♂️`;
         } else {
             showSection('sec-setup');
         }
+        
+        // 테마 로드
+        applyTheme(currentTheme);
     }
 
     initApp();

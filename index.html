@@ -23,9 +23,15 @@
         <header class="app-header">
             <div class="logo">
                 <i class="ph-fill ph-golf"></i>
-                <h1>BirdieLog <span class="version-badge">v5.0</span></h1>
+                <h1>BirdieLog <span class="version-badge">v6.0</span></h1>
             </div>
             <div class="header-actions">
+                <button id="btn-undo" class="icon-btn" title="실행 취소" aria-label="실행 취소">
+                    <i class="ph ph-arrow-u-up-left"></i>
+                </button>
+                <button id="btn-toggle-theme" class="icon-btn" title="테마 변경" aria-label="테마 변경">
+                    <i class="ph ph-sun-dim"></i>
+                </button>
                 <button id="btn-reset-data" class="icon-btn" title="데이터 초기화" aria-label="기록 초기화">
                     <i class="ph ph-arrow-counter-clockwise"></i>
                 </button>
@@ -64,8 +70,10 @@
                 <div class="section-title mt-4">
                     <h3>⚙️ 18홀 Par 그리드 세팅</h3>
                     <div class="template-actions">
-                        <button id="btn-save-template" class="btn btn-sm btn-secondary"><i class="ph ph-floppy-disk"></i> 템플릿 저장</button>
-                        <button id="btn-load-template" class="btn btn-sm btn-secondary"><i class="ph ph-folder-open"></i> 불러오기</button>
+                        <button id="btn-preset-standard" class="btn btn-sm btn-secondary"><i class="ph ph-golf"></i> 표준 (Par72)</button>
+                        <button id="btn-preset-short" class="btn btn-sm btn-secondary"><i class="ph ph-flag"></i> 숏 (Par54)</button>
+                        <button id="btn-save-template" class="btn btn-sm btn-secondary"><i class="ph ph-floppy-disk"></i> 저장</button>
+                        <button id="btn-load-template" class="btn btn-sm btn-secondary"><i class="ph ph-folder-open"></i> 로드</button>
                     </div>
                 </div>
 
@@ -142,56 +150,45 @@
                     <!-- 입력 패널 바디 -->
                     <div class="input-panels">
                         
-                        <!-- 1. 스코어 패널 (콤보박스화) -->
+                        <!-- 1. 스코어 패널 (원터치 버튼 그리드화) -->
                         <div class="panel-content active" id="panel-score">
-                            <p class="panel-guide" id="guide-score">1번 홀의 최종 성적을 선택하세요.</p>
-                            <div class="combo-box-container">
-                                <label for="select-score" class="combo-label"><i class="ph-bold ph-trophy"></i> 스코어 선택</label>
-                                <div class="select-wrapper">
-                                    <select id="select-score" class="select-input">
-                                        <option value="" disabled selected>터치하여 성적 선택</option>
-                                        <option value="-3">알바트로스 (-3)</option>
-                                        <option value="-2">이글 (-2)</option>
-                                        <option value="-1">버디 (-1)</option>
-                                        <option value="0">파 (E)</option>
-                                        <option value="1">보기 (+1)</option>
-                                        <option value="2">더블 보기 (+2)</option>
-                                        <option value="3">트리플 보기 (+3)</option>
-                                        <option value="4">쿼드러플 보기 (+4)</option>
-                                        <option value="5">기타 (+5이상)</option>
-                                    </select>
-                                    <div class="select-arrow-icon"><i class="ph-bold ph-caret-down"></i></div>
-                                </div>
+                            <p class="panel-guide" id="guide-score">1번 홀의 최종 성적을 탭하세요.</p>
+                            <div class="score-btn-grid">
+                                <button class="btn-input score-btn" data-score="-3">알바(-3)</button>
+                                <button class="btn-input score-btn" data-score="-2">이글(-2)</button>
+                                <button class="btn-input score-btn" data-score="-1">버디(-1)</button>
+                                <button class="btn-input score-btn" data-score="0">파(E)</button>
+                                <button class="btn-input score-btn" data-score="1">보기(+1)</button>
+                                <button class="btn-input score-btn" data-score="2">더블(+2)</button>
+                                <button class="btn-input score-btn" data-score="3">트리플(+3)</button>
+                                <button class="btn-input score-btn" data-score="4">쿼드(+4)</button>
+                                <button class="btn-input score-btn" data-score="5">기타(+5)</button>
                             </div>
                         </div>
 
-                        <!-- 2. 티샷 패널 (5단계 방향 + 상태 콤보박스) -->
+                        <!-- 2. 티샷 패널 (5단계 방향 + 상태 원터치 버튼) -->
                         <div class="panel-content" id="panel-tee">
                             <p class="panel-guide">티샷 구질과 드라이버 상태를 기록하세요.</p>
                             
                             <div class="direction-select">
                                 <span class="sub-guide">티샷 구질 (방향)</span>
                                 <div class="dir-btn-group-5">
-                                    <button class="btn-input tee-dir" data-dir="strong_hook">강한 훅</button>
-                                    <button class="btn-input tee-dir" data-dir="draw">드로우</button>
-                                    <button class="btn-input tee-dir" data-dir="straight">스트레이트</button>
-                                    <button class="btn-input tee-dir" data-dir="fade">페이드</button>
-                                    <button class="btn-input tee-dir" data-dir="slice">슬라이스</button>
+                                    <button class="btn-input tee-dir" data-dir="strong_hook"><i class="ph ph-arrow-counter-clockwise"></i>강훅</button>
+                                    <button class="btn-input tee-dir" data-dir="draw"><i class="ph ph-arrow-up-left"></i>드로우</button>
+                                    <button class="btn-input tee-dir" data-dir="straight"><i class="ph ph-arrow-up"></i>안착</button>
+                                    <button class="btn-input tee-dir" data-dir="fade"><i class="ph ph-arrow-up-right"></i>페이드</button>
+                                    <button class="btn-input tee-dir" data-dir="slice"><i class="ph ph-arrow-clockwise"></i>슬라이스</button>
                                 </div>
                             </div>
                             
                             <div class="issue-select mt-3">
                                 <span class="sub-guide">드라이버 상태</span>
-                                <div class="select-wrapper">
-                                    <select id="select-tee-status" class="select-input">
-                                        <option value="" disabled selected>터치하여 드라이버 상태 선택</option>
-                                        <option value="normal">정상 (비거리 200m 정도)</option>
-                                        <option value="long">비거리 긺 (210m 이상)</option>
-                                        <option value="short">비거리 짧음 (190m 이하)</option>
-                                        <option value="ob">오비 (O.B)</option>
-                                        <option value="hazard">해저드</option>
-                                    </select>
-                                    <div class="select-arrow-icon"><i class="ph-bold ph-caret-down"></i></div>
+                                <div class="tee-status-grid">
+                                    <button class="btn-input tee-status-btn" data-status="normal"><i class="ph-bold ph-check"></i>정상</button>
+                                    <button class="btn-input tee-status-btn" data-status="long"><i class="ph-bold ph-trend-up"></i>긺</button>
+                                    <button class="btn-input tee-status-btn" data-status="short"><i class="ph-bold ph-trend-down"></i>짧음</button>
+                                    <button class="btn-input tee-status-btn" data-status="ob"><i class="ph-bold ph-warning-octagon"></i>OB</button>
+                                    <button class="btn-input tee-status-btn" data-status="hazard"><i class="ph-bold ph-waves"></i>해저드</button>
                                 </div>
                             </div>
                         </div>
@@ -302,6 +299,40 @@
                     </div>
                 </div>
 
+                <!-- 비주얼 리포트 카드 (SVG 게이지 및 스코어카드) -->
+                <div class="card visual-report-card mt-3">
+                    <div class="gauge-charts-container">
+                        <div class="gauge-box">
+                            <div class="gauge-circle-wrapper">
+                                <svg class="gauge-svg" viewBox="0 0 100 100">
+                                    <circle class="gauge-bg" cx="50" cy="50" r="40"></circle>
+                                    <circle class="gauge-fill" id="gauge-fwy" cx="50" cy="50" r="40" stroke-dasharray="251.2" stroke-dashoffset="251.2"></circle>
+                                </svg>
+                                <span class="gauge-val" id="gauge-fwy-val">0%</span>
+                            </div>
+                            <span class="gauge-title">FWY 안착률</span>
+                        </div>
+                        <div class="gauge-box">
+                            <div class="gauge-circle-wrapper">
+                                <svg class="gauge-svg" viewBox="0 0 100 100">
+                                    <circle class="gauge-bg" cx="50" cy="50" r="40"></circle>
+                                    <circle class="gauge-fill" id="gauge-gir" cx="50" cy="50" r="40" stroke-dasharray="251.2" stroke-dashoffset="251.2"></circle>
+                                </svg>
+                                <span class="gauge-val" id="gauge-gir-val">0%</span>
+                            </div>
+                            <span class="gauge-title">GIR 적중률</span>
+                        </div>
+                    </div>
+                    <div class="scorecard-table-wrapper mt-4">
+                        <h4 class="scorecard-heading"><i class="ph-bold ph-table"></i> 18홀 그래픽 스코어카드</h4>
+                        <div class="table-scroll">
+                            <table class="scorecard-table" id="scorecard-table">
+                                <!-- JS에서 동적 렌더링 -->
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 텍스트 복사용 리포트 프레임 -->
                 <div class="section-title mt-4">
                     <h3>📝 텍스트 공유 템플릿</h3>
@@ -319,9 +350,13 @@
                     <textarea id="txt-report-output" class="terminal-textarea" readonly></textarea>
                 </div>
 
+                <!-- 숨겨진 이미지 생성용 캔버스 -->
+                <canvas id="canvas-card" style="display: none;"></canvas>
+
                 <div class="action-footer-dual mt-4">
-                    <button id="btn-restart" class="btn btn-secondary btn-lg"><i class="ph ph-house"></i> 메인으로</button>
-                    <button id="btn-copy-report" class="btn btn-primary btn-lg glow-btn"><i class="ph ph-copy"></i> 리포트 복사</button>
+                    <button id="btn-restart" class="btn btn-secondary btn-lg"><i class="ph ph-house"></i> 메인</button>
+                    <button id="btn-download-card" class="btn btn-success btn-lg glow-btn"><i class="ph ph-image-square"></i> 카드 저장</button>
+                    <button id="btn-copy-report" class="btn btn-primary btn-lg glow-btn"><i class="ph ph-copy"></i> 복사</button>
                 </div>
             </section>
 
