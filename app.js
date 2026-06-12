@@ -127,22 +127,68 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const parsed = JSON.parse(saved);
                 
-                // 마이그레이션: holeLogs 내의 iron 필드가 객체가 아니거나 v4.0 규격일 때 v5.0으로 변환
-                if (parsed.holeLogs && Array.isArray(parsed.holeLogs)) {
-                    parsed.holeLogs = parsed.holeLogs.map(log => {
-                        if (log && (log.iron === null || typeof log.iron === 'string')) {
-                            const oldIron = log.iron;
-                            log.iron = {
-                                gir: oldIron === 'on' ? 'on' : (oldIron ? 'off' : null),
-                                side: (oldIron === 'left' || oldIron === 'right') ? oldIron : null,
-                                depth: (oldIron === 'over' || oldIron === 'short') ? oldIron : null
-                            };
+                // 1. 기본 메타데이터 복사
+                if (parsed.clubName !== undefined) state.clubName = parsed.clubName;
+                if (parsed.courseOut !== undefined) state.courseOut = parsed.courseOut;
+                if (parsed.courseIn !== undefined) state.courseIn = parsed.courseIn;
+                if (parsed.players !== undefined) state.players = parsed.players;
+                if (parsed.currentHole !== undefined) state.currentHole = Number(parsed.currentHole) || 1;
+
+                // 2. Pars 배열 검증 및 마이그레이션
+                if (parsed.pars && Array.isArray(parsed.pars) && parsed.pars.length === 18) {
+                    state.pars = parsed.pars.map(p => Number(p) || 4);
+                } else {
+                    state.pars = Array(18).fill(4);
+                }
+
+                // 3. HoleLogs 배열 검증 및 마이그레이션
+                if (parsed.holeLogs && Array.isArray(parsed.holeLogs) && parsed.holeLogs.length === 18) {
+                    state.holeLogs = parsed.holeLogs.map((log) => {
+                        const baseLog = {
+                            score: null,
+                            teeDir: null,
+                            teeStatus: null,
+                            wood: null,
+                            iron: { gir: null, side: null, depth: null },
+                            putts: null,
+                            puttMiss: null
+                        };
+
+                        if (!log) return baseLog;
+
+                        if (log.score !== undefined) baseLog.score = log.score !== null ? Number(log.score) : null;
+                        if (log.teeDir !== undefined) baseLog.teeDir = log.teeDir;
+                        if (log.teeStatus !== undefined) baseLog.teeStatus = log.teeStatus;
+                        if (log.wood !== undefined) baseLog.wood = log.wood;
+                        if (log.putts !== undefined) baseLog.putts = log.putts !== null ? Number(log.putts) : null;
+                        if (log.puttMiss !== undefined) baseLog.puttMiss = log.puttMiss;
+
+                        if (log.iron) {
+                            if (typeof log.iron === 'string') {
+                                const oldIron = log.iron;
+                                baseLog.iron = {
+                                    gir: oldIron === 'on' ? 'on' : (oldIron ? 'off' : null),
+                                    side: (oldIron === 'left' || oldIron === 'right') ? oldIron : null,
+                                    depth: (oldIron === 'over' || oldIron === 'short') ? oldIron : null
+                                };
+                            } else if (typeof log.iron === 'object') {
+                                baseLog.iron = {
+                                    gir: log.iron.gir !== undefined ? log.iron.gir : null,
+                                    side: log.iron.side !== undefined ? log.iron.side : null,
+                                    depth: log.iron.depth !== undefined ? log.iron.depth : null
+                                };
+                            }
                         }
-                        return log;
+                        return baseLog;
                     });
+                } else {
+                    state.holeLogs = Array.from({ length: 18 }, () => ({
+                        score: null, teeDir: null, teeStatus: null, wood: null, 
+                        iron: { gir: null, side: null, depth: null }, 
+                        putts: null, puttMiss: null
+                    }));
                 }
                 
-                state = { ...state, ...parsed };
                 return true;
             } catch (e) {
                 console.error("데이터 로드 에러:", e);
