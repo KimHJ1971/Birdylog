@@ -4,5 +4,8 @@
   "description": "BirdieLog static web app",
   "scripts": {
     "dev": "npx -y http-server -p 8080"
+  },
+  "dependencies": {
+    "jsdom": "^29.1.1"
   }
 }
