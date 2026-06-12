@@ -1,9 +1,14 @@
 /* ==========================================================================
-   버디로그 (BirdieLog) v4.0 - 핵심 비즈니스 로직 및 벤 호건 레슨 엔진 스크립트
+   버디로그 (BirdieLog) v6.0 - 핵심 비즈니스 로직 및 벤 호건 레슨 엔진 스크립트
    ========================================================================== */
 
+window.onerror = function(message, source, lineno, colno, error) {
+    alert(`[버디로그 JS 에러]\n메시지: ${message}\n라인: ${lineno}\n파일: ${source}\n에러객체: ${error}`);
+    return false;
+};
+
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. 애플리케이션 상태 (State v4.0)
+    // 1. 애플리케이션 상태 (State v6.0)
     let state = {
         clubName: '',
         courseOut: '',
@@ -281,14 +286,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 라운딩 시작
     els.btnStartGame.addEventListener('click', () => {
-        state.clubName = els.inputClubName.value.trim() || '이름 없는 골프장';
-        state.courseOut = els.inputCourseOut.value.trim() || '전반';
-        state.courseIn = els.inputCourseIn.value.trim() || '후반';
-        state.players = els.inputPlayers.value.trim() || '플레이어';
+        try {
+            state.clubName = els.inputClubName.value.trim() || '이름 없는 골프장';
+            state.courseOut = els.inputCourseOut.value.trim() || '전반';
+            state.courseIn = els.inputCourseIn.value.trim() || '후반';
+            state.players = els.inputPlayers.value.trim() || '플레이어';
 
-        saveStateToStorage();
-        initInGameUI();
-        showSection('sec-game');
+            saveStateToStorage();
+            initInGameUI();
+            showSection('sec-game');
+        } catch (err) {
+            alert("라운딩 시작 중 에러 발생: " + err.message + "\nStack: " + err.stack);
+        }
     });
 
     // 6. 인게임 화면 기능 제어
