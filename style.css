@@ -1,5 +1,5 @@
 /* ==========================================================================
-   버디로그 (BirdieLog) v7.0 - 모바일 전용 초고대비 하이브리드 스타일 시트
+   버디로그 (BirdieLog) v8.0 - 모바일 전용 초고대비 하이브리드 스타일 시트
    - 1.5배 폰트 크기 대폭 반영 & 18홀 Par 그리드 겹침 해결
    - 가로 스크롤 차단을 위한 완전 반응형 레이아웃 설계
    - 하이브리드 라이트 터치 입력창 (PWA Standalone 모드 최적화)
@@ -1192,4 +1192,130 @@ input[type="text"]:focus {
     color: var(--neon-yellow);
     border-radius: 50% / 30%;
     width: 28px;
+}
+
+/* ==========================================================================
+   v8.0 신규 디자인 스펙: 날짜 입력, Par 합산, DB 이력 관리
+   ========================================================================== */
+
+/* 날짜 입력창 커스텀 */
+input[type="date"] {
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: var(--input-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text-primary);
+    width: 100%;
+    box-sizing: border-box;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input[type="date"]:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.15);
+}
+
+/* Par 합산 뱃지 */
+.par-sum-badge {
+    background-color: var(--card-active);
+    color: var(--neon-cyan);
+    font-size: 14px;
+    font-weight: 900;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-left: 8px;
+    border: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+/* DB 이력 관리 스타일 */
+.history-card {
+    margin-top: 12px;
+    padding: 12px;
+    overflow: hidden;
+}
+
+.history-table-container {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 8px;
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+}
+
+.history-table th, .history-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--border-color);
+    white-space: nowrap;
+}
+
+.history-table th {
+    background-color: var(--card-active);
+    color: var(--text-secondary);
+    font-weight: 900;
+}
+
+.history-table td {
+    color: var(--text-primary);
+    font-weight: 800;
+}
+
+.history-table tbody tr {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.history-table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.device-wrapper.light-theme .history-table tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.history-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.btn-history-view {
+    background-color: var(--primary-color);
+    color: #05070e;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 900;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-history-del {
+    background-color: #ff3b30;
+    color: #ffffff;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 900;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }

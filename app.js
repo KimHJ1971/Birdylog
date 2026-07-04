@@ -1,5 +1,5 @@
 /* ==========================================================================
-   버디로그 (BirdieLog) v7.0 - 핵심 비즈니스 로직 및 벤 호건 레슨 엔진 스크립트
+   버디로그 (BirdieLog) v8.0 - 핵심 비즈니스 로직 및 벤 호건 레슨 엔진 스크립트
    ========================================================================== */
 
 window.onerror = function(message, source, lineno, colno, error) {
@@ -8,12 +8,13 @@ window.onerror = function(message, source, lineno, colno, error) {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. 애플리케이션 상태 (State v7.0)
+    // 1. 애플리케이션 상태 (State v8.0)
     let state = {
         clubName: '',
         courseOut: '',
         courseIn: '',
         players: '',
+        roundDate: new Date().toISOString().split('T')[0], // 기본값 오늘 날짜 YYYY-MM-DD
         pars: Array(18).fill(4), // 기본값 Par 4
         currentHole: 1, // 1~18
         holeLogs: Array.from({ length: 18 }, () => ({
@@ -47,11 +48,14 @@ document.addEventListener('DOMContentLoaded', () => {
         secReport: document.getElementById('sec-report'),
 
         // 설정 화면
+        inputRoundDate: document.getElementById('input-round-date'),
         inputClubName: document.getElementById('input-club-name'),
         inputCourseOut: document.getElementById('input-course-out'),
         inputCourseIn: document.getElementById('input-course-in'),
         inputPlayers: document.getElementById('input-players'),
         parGridContainer: document.getElementById('par-grid-container'),
+        parSumDisplay: document.getElementById('par-sum-display'),
+        historyDbList: document.getElementById('history-db-list'),
         btnSaveTemplate: document.getElementById('btn-save-template'),
         btnLoadTemplate: document.getElementById('btn-load-template'),
         btnStartGame: document.getElementById('btn-start-game'),
@@ -133,6 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const parsed = JSON.parse(saved);
                 
                 // 1. 기본 메타데이터 복사
+                if (parsed.roundDate !== undefined) state.roundDate = parsed.roundDate;
                 if (parsed.clubName !== undefined) state.clubName = parsed.clubName;
                 if (parsed.courseOut !== undefined) state.courseOut = parsed.courseOut;
                 if (parsed.courseIn !== undefined) state.courseIn = parsed.courseIn;
@@ -240,9 +245,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 state.pars[holeIdx] = currentPar;
                 document.getElementById(`par-val-${holeIdx}`).textContent = currentPar;
+                updateParSum();
                 saveStateToStorage();
             });
         });
+        updateParSum();
     }
 
     // 템플릿 저장
@@ -285,6 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             renderParGrid();
+            updateParSum();
             saveStateToStorage();
             showToast("코스 템플릿을 성공적으로 불러왔습니다!");
         } catch (e) {
@@ -861,6 +869,7 @@ document.addEventListener('DOMContentLoaded', () => {
         pushStateToHistory();
         state.pars = [4, 4, 3, 5, 4, 4, 3, 4, 5, 4, 4, 3, 5, 4, 4, 3, 4, 5];
         renderParGrid();
+        updateParSum();
         saveStateToStorage();
         showToast("표준 코스(Par 72)로 일괄 설정되었습니다.");
     });
@@ -869,6 +878,7 @@ document.addEventListener('DOMContentLoaded', () => {
         pushStateToHistory();
         state.pars = Array(18).fill(3);
         renderParGrid();
+        updateParSum();
         saveStateToStorage();
         showToast("숏 코스(Par 54)로 일괄 설정되었습니다.");
     });
@@ -929,6 +939,7 @@ document.addEventListener('DOMContentLoaded', () => {
     els.btnFinishGame.addEventListener('click', () => {
         if (confirm("경기를 마감하고 벤 호건의 원포인트 스윙 조언이 포함된 최종 리포트를 빌드하시겠습니까?")) {
             generateReport();
+            saveRoundToDB();
             showSection('sec-report');
         }
     });
@@ -1191,12 +1202,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const benHoganAdviceText = getBenHoganAdvice(stats);
 
         // 4. 최종 공유용 리포트 스트링 생성
-        const todayStr = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+        let formattedDate = '';
+        if (state.roundDate) {
+            const dateParts = state.roundDate.split('-');
+            if (dateParts.length === 3) {
+                formattedDate = `${dateParts[0]}년 ${parseInt(dateParts[1], 10)}월 ${parseInt(dateParts[2], 10)}일`;
+            }
+        }
+        if (!formattedDate) {
+            formattedDate = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
         
         const reportString = 
 `⛳️ [버디로그] 라운딩 리포트 & 샷 분석
 =========================================
-🗓 날짜: ${todayStr}
+🗓 날짜: ${formattedDate}
 📍 골프장: ${state.clubName} (${state.courseOut} / ${state.courseIn})
 👤 플레이어: ${state.players}
 
@@ -1222,7 +1242,7 @@ ${benHoganAdviceText}
 ${holeDetailsText.trim()}
 -----------------------------------------
 
-Generated by BirdieLog v7.0 🏌️‍♂️`;
+Generated by BirdieLog v8.0 🏌️‍♂️`;
 
         els.txtReportOutput.value = reportString;
 
@@ -1332,9 +1352,18 @@ Generated by BirdieLog v7.0 🏌️‍♂️`;
         // 정보 출력
         ctx.font = '800 28px sans-serif';
         ctx.fillStyle = '#cbd5e1';
-        const todayStr = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+        let formattedDate = '';
+        if (state.roundDate) {
+            const dateParts = state.roundDate.split('-');
+            if (dateParts.length === 3) {
+                formattedDate = `${dateParts[0]}년 ${parseInt(dateParts[1], 10)}월 ${parseInt(dateParts[2], 10)}일`;
+            }
+        }
+        if (!formattedDate) {
+            formattedDate = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
         ctx.fillText(`📍 골프장: ${state.clubName} (${state.courseOut} / ${state.courseIn})`, 80, 170);
-        ctx.fillText(`🗓 일자: ${todayStr}`, 80, 220);
+        ctx.fillText(`🗓 일자: ${formattedDate}`, 80, 220);
         ctx.fillText(`👤 플레이어: ${state.players}`, 80, 270);
         
         // 4. 주요 통계 박스
@@ -1416,11 +1445,12 @@ Generated by BirdieLog v7.0 🏌️‍♂️`;
         
         ctx.font = 'italic 800 22px sans-serif';
         ctx.fillStyle = '#475569';
-        ctx.fillText('Generated by BirdieLog v7.0 Premium', 320, 940);
+        ctx.fillText('Generated by BirdieLog v8.0 Premium', 320, 940);
         
         const dataUrl = canvas.toDataURL('image/png');
         const link = document.createElement('a');
-        link.download = `BirdieLog_${state.clubName}_${todayStr}.png`;
+        const fileDate = state.roundDate || new Date().toISOString().split('T')[0];
+        link.download = `BirdieLog_${state.clubName}_${fileDate}.png`;
         link.href = dataUrl;
         link.click();
     }
@@ -1556,6 +1586,144 @@ Generated by BirdieLog v7.0 🏌️‍♂️`;
     });
 
     // 11. 초기화 구동 시 동작
+    const DB_KEY = 'birdielog_db';
+
+    function updateParSum() {
+        const totalPars = state.pars.reduce((acc, curr) => acc + curr, 0);
+        if (els.parSumDisplay) {
+            els.parSumDisplay.textContent = totalPars;
+        }
+    }
+
+    function saveRoundToDB() {
+        try {
+            const parSum = state.pars.reduce((a, b) => a + b, 0);
+            let totalScore = parSum;
+            state.holeLogs.forEach((log) => {
+                if (log.score !== null) {
+                    totalScore += log.score;
+                }
+            });
+
+            const roundRecord = {
+                id: 'round_' + Date.now(),
+                date: state.roundDate,
+                clubName: state.clubName || '이름 없는 골프장',
+                courseOut: state.courseOut || '전반',
+                courseIn: state.courseIn || '후반',
+                players: state.players || '플레이어',
+                pars: [...state.pars],
+                holeLogs: JSON.parse(JSON.stringify(state.holeLogs)),
+                totalScore: totalScore
+            };
+
+            const savedDb = localStorage.getItem(DB_KEY);
+            const db = savedDb ? JSON.parse(savedDb) : [];
+            db.push(roundRecord);
+            localStorage.setItem(DB_KEY, JSON.stringify(db));
+            
+            renderDBHistory();
+        } catch (e) {
+            console.error("DB 저장 오류:", e);
+        }
+    }
+
+    function renderDBHistory() {
+        if (!els.historyDbList) return;
+        const savedDb = localStorage.getItem(DB_KEY);
+        const db = savedDb ? JSON.parse(savedDb) : [];
+        els.historyDbList.innerHTML = '';
+        
+        if (db.length === 0) {
+            els.historyDbList.innerHTML = `
+                <tr>
+                    <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px 0;">저장된 라운딩 기록이 없습니다.</td>
+                </tr>
+            `;
+            return;
+        }
+
+        const sortedDb = [...db].reverse();
+
+        sortedDb.forEach((record) => {
+            const tr = document.createElement('tr');
+            
+            const recordParSum = record.pars.reduce((a, b) => a + b, 0);
+            const scoreDiff = record.totalScore - recordParSum;
+            const diffText = scoreDiff === 0 ? 'E' : (scoreDiff > 0 ? `+${scoreDiff}` : `${scoreDiff}`);
+            
+            tr.innerHTML = `
+                <td>${record.date}</td>
+                <td>${record.clubName}</td>
+                <td>${record.totalScore}타 (${diffText})</td>
+                <td>
+                    <div class="history-actions">
+                        <button class="btn-history-view" data-id="${record.id}"><i class="ph ph-eye"></i> 열람</button>
+                        <button class="btn-history-del" data-id="${record.id}"><i class="ph ph-trash"></i> 삭제</button>
+                    </div>
+                </td>
+            `;
+            
+            tr.addEventListener('click', (e) => {
+                if (e.target.closest('.btn-history-del') || e.target.closest('.btn-history-view')) {
+                    return;
+                }
+                loadRoundFromDB(record.id);
+            });
+
+            tr.querySelector('.btn-history-view').addEventListener('click', () => {
+                loadRoundFromDB(record.id);
+            });
+
+            tr.querySelector('.btn-history-del').addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (confirm(`[${record.date} - ${record.clubName}] 기록을 DB에서 삭제하시겠습니까?`)) {
+                    deleteRoundFromDB(record.id);
+                }
+            });
+
+            els.historyDbList.appendChild(tr);
+        });
+    }
+
+    function deleteRoundFromDB(id) {
+        const savedDb = localStorage.getItem(DB_KEY);
+        let db = savedDb ? JSON.parse(savedDb) : [];
+        db = db.filter(r => r.id !== id);
+        localStorage.setItem(DB_KEY, JSON.stringify(db));
+        renderDBHistory();
+        showToast("기록이 삭제되었습니다.");
+    }
+
+    function loadRoundFromDB(id) {
+        const savedDb = localStorage.getItem(DB_KEY);
+        const db = savedDb ? JSON.parse(savedDb) : [];
+        const record = db.find(r => r.id === id);
+        if (!record) {
+            alert("해당 라운딩 기록을 찾을 수 없습니다.");
+            return;
+        }
+
+        state.clubName = record.clubName;
+        state.courseOut = record.courseOut;
+        state.courseIn = record.courseIn;
+        state.players = record.players;
+        state.roundDate = record.date;
+        state.pars = [...record.pars];
+        state.holeLogs = JSON.parse(JSON.stringify(record.holeLogs));
+        
+        els.inputClubName.value = record.clubName;
+        els.inputCourseOut.value = record.courseOut;
+        els.inputCourseIn.value = record.courseIn;
+        els.inputPlayers.value = record.players;
+        els.inputRoundDate.value = record.date;
+
+        saveStateToStorage();
+        generateReport();
+        showSection('sec-report');
+        showToast(`${record.date} 라운딩을 열람합니다.`);
+    }
+
     function initApp() {
         const hasSavedState = loadStateFromStorage();
         
@@ -1563,15 +1731,25 @@ Generated by BirdieLog v7.0 🏌️‍♂️`;
         if (state.courseOut) els.inputCourseOut.value = state.courseOut;
         if (state.courseIn) els.inputCourseIn.value = state.courseIn;
         if (state.players) els.inputPlayers.value = state.players;
+        
+        // 날짜 필드 초기화 및 이벤트 리스너
+        if (els.inputRoundDate) {
+            els.inputRoundDate.value = state.roundDate;
+            els.inputRoundDate.addEventListener('change', (e) => {
+                state.roundDate = e.target.value;
+                saveStateToStorage();
+            });
+        }
 
         renderParGrid();
+        updateParSum();
+        renderDBHistory();
 
         if (hasSavedState && state.clubName) {
             if (confirm("이전에 기록하던 라운딩 정보가 존재합니다. 이어서 작성하시겠습니까?")) {
                 initInGameUI();
                 showSection('sec-game');
             } else {
-                // 홀 기록만 초기화 — Par·코스 설정은 유지 (재입력 불필요)
                 state.currentHole = 1;
                 state.holeLogs = Array.from({ length: 18 }, () => ({
                     score: null, teeDir: null, teeStatus: null, wood: null,
@@ -1580,13 +1758,13 @@ Generated by BirdieLog v7.0 🏌️‍♂️`;
                 }));
                 saveStateToStorage();
                 renderParGrid();
+                updateParSum();
                 showSection('sec-setup');
             }
         } else {
             showSection('sec-setup');
         }
         
-        // 테마 로드
         applyTheme(currentTheme);
     }
 
