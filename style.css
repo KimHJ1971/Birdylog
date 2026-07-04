@@ -335,11 +335,9 @@ input[type="text"]:focus {
 }
 
 .par-grid-card {
-    max-height: 380px;
-    overflow-y: auto;
     margin-top: 12px;
     width: 100%;
-    padding: 16px 12px; /* 가로 패딩 조율 */
+    padding: 16px 12px;
 }
 
 .par-grid {
