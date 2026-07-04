@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://unpkg.com">
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable-dynamic-subset.css" />
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <link rel="stylesheet" href="./style.css?v=8.0">
+    <link rel="stylesheet" href="./style.css?v=9.0">
 </head>
 <body>
     <div class="device-wrapper">
@@ -23,7 +23,7 @@
         <header class="app-header">
             <div class="logo">
                 <i class="ph-fill ph-golf"></i>
-                <h1>BirdieLog <span class="version-badge">v8.0</span></h1>
+                <h1>BirdieLog <span class="version-badge">v9.0</span></h1>
             </div>
             <div class="header-actions">
                 <button id="btn-undo" class="icon-btn" title="실행 취소" aria-label="실행 취소">
@@ -68,6 +68,11 @@
                     <div class="form-group">
                         <label for="input-players"><i class="ph ph-users"></i> 동반자 이름 (쉼표 구분)</label>
                         <input type="text" id="input-players" placeholder="예: 홍길동, 이몽룡" autocomplete="off">
+                    </div>
+                    <div class="form-group mt-2">
+                        <button type="button" id="btn-fetch-web-pars" class="btn btn-secondary btn-block" style="background: linear-gradient(135deg, #00e5ff 0%, #0088ff 100%); color: #05070e; border: none; font-weight: 900;">
+                            <i class="ph-bold ph-globe"></i> 🌐 웹사이트 기준타수 조회 (자동 로딩)
+                        </button>
                     </div>
                 </div>
 
@@ -393,7 +398,16 @@
     <!-- TOAST NOTIFICATION -->
     <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">클립보드에 복사되었습니다!</div>
 
+    <!-- WEB LOADER OVERLAY -->
+    <div id="web-loader-overlay" class="loader-overlay">
+        <div class="loader-content">
+            <div class="loader-spinner"></div>
+            <p class="loader-text">골프장 웹사이트 연결 중...</p>
+            <small class="loader-subtext">공식 코스 기본타수 정보를 분석하고 있습니다.</small>
+        </div>
+    </div>
+
     <!-- Scripts -->
-    <script src="./app.js?v=8.0" defer></script>
+    <script src="./app.js?v=9.0" defer></script>
 </body>
 </html>
